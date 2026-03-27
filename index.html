@@ -260,6 +260,48 @@ canvas { display: block; }
   #filters { top: auto; bottom: 5rem; left: 0.75rem; right: 0.75rem; transform: none; }
   #topbar, #bbar { padding: 1rem; }
   #sidenav { display: none; }
+
+  #topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.8rem 1rem;
+    gap: 0.25rem;
+  }
+  #topbar > div:last-child { font-size: 0.6rem; }
+  .brand { font-size: 1.1rem; }
+
+  #filters {
+    top: auto;
+    bottom: 4.5rem;
+    left: 0;
+    right: 0;
+    padding: 0 0.75rem;
+    transform: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px;
+  }
+  #filters::-webkit-scrollbar { display: none; }
+  .fbtn {
+    padding: 5px 10px;
+    font-size: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  .ph { padding: 1.2rem 1rem 0; }
+  .ptitle { font-size: 1.3rem; }
+  .pbody { padding: 1rem 1rem 2rem; }
+  .pmeta { grid-template-columns: 1fr; }
+  .ptag { font-size: 0.58rem; padding: 3px 8px; }
+
+  #bbar { padding: 0.6rem 1rem; }
+  .hint { display: none; }
+  .nbtn { width: 42px; height: 42px; }
+
+  #topbar { padding-top: max(0.8rem, env(safe-area-inset-top)); }
+  #bbar { padding-bottom: max(0.6rem, env(safe-area-inset-bottom)); }
 }
 </style>
 </head>
@@ -801,6 +843,11 @@ let activeF = 'all';
 let hov = null, sel = null;
 let flyA = null;
 let snHideTimer = null;
+let hitMeshes = [];
+
+// Mobile/touch detection (set in boot())
+let isMobile = false;
+let isTouchDevice = false;
 
 // Orbit state (fully manual — no CDN addon dependency)
 const orbit = { theta: 0, phi: 0.45, dist: 130, tx: 0, ty: 0, tz: 0 };
@@ -840,6 +887,8 @@ function createBubbleMaterial(size) {
 }
 
 function boot() {
+  isMobile = window.matchMedia('(max-width: 640px)').matches;
+  isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   try {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x06060b);
@@ -862,8 +911,21 @@ function boot() {
     fl.position.set(-30, -10, -40);
     scene.add(fl);
 
+    if (isMobile) orbit.dist = 90;
+
     buildStars();
     buildNodes();
+    if (isTouchDevice) {
+      meshes.forEach(m => {
+        const hitGeo = new THREE.SphereGeometry(m.userData.size * 1.8, 8, 8);
+        const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+        const hit = new THREE.Mesh(hitGeo, hitMat);
+        hit.position.copy(m.position);
+        hit.userData.idx = m.userData.idx;
+        scene.add(hit);
+        hitMeshes.push(hit);
+      });
+    }
     buildLines();
     buildLabels();
     bindEvents();
@@ -924,6 +986,7 @@ function buildStars() {
 }
 
 function buildNodes() {
+  const SEG = isMobile ? 24 : 48;
   // Create a glow texture
   const gc = document.createElement('canvas');
   gc.width = 128; gc.height = 128;
@@ -945,7 +1008,7 @@ function buildNodes() {
     const glowOpacity  = 0.05 + yf * 0.17; // 0.05 (oldest) → 0.22 (newest)
     const plIntensity  = 0.10 + yf * 0.35; // 0.10 (oldest) → 0.45 (newest)
 
-    const geo = new THREE.SphereGeometry(d.size, 48, 48);
+    const geo = new THREE.SphereGeometry(d.size, SEG, SEG);
     const baseBrightness = 0.55 + yf * 0.45; // older orbs slightly dimmer overall
     const mat = new THREE.ShaderMaterial({
       vertexShader:   BUBBLE_VERT,
@@ -974,7 +1037,7 @@ function buildNodes() {
     // Store originals and precompute the soap-bubble swaps for the selected state
     m.userData.originalMat = mat;
     m.userData.originalGeo = geo;
-    m.userData.bubbleGeo   = new THREE.SphereGeometry(d.size, 64, 64);
+    m.userData.bubbleGeo   = new THREE.SphereGeometry(d.size, SEG, SEG);
     m.userData.bubbleMat   = createBubbleMaterial(d.size);
     scene.add(m);
     meshes.push(m);
@@ -990,10 +1053,12 @@ function buildNodes() {
     glows.push(sp);
 
     // Point light
-    const pl = new THREE.PointLight(CC[d.category].i, plIntensity, d.size * 10);
-    pl.position.copy(m.position);
-    m.userData.pl = pl;
-    scene.add(pl);
+    if (!isMobile) {
+      const pl = new THREE.PointLight(CC[d.category].i, plIntensity, d.size * 10);
+      pl.position.copy(m.position);
+      m.userData.pl = pl;
+      scene.add(pl);
+    }
   });
 }
 
@@ -1044,18 +1109,72 @@ function buildLabels() {
 function bindEvents() {
   const el = ren.domElement;
 
+  // Pointer tracking for pinch-to-zoom and two-finger pan
+  const activePointers = new Map();
+  let prevPinchDist = null;
+
+  // Tap detection state
+  let downX = 0, downY = 0, downTime = 0;
+  let isTapDrag = false;
+
   // Orbit drag
   el.addEventListener('pointerdown', e => {
-    isDrag = true; dragBtn = e.button; px = e.clientX; py = e.clientY;
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    dragBtn = e.button; px = e.clientX; py = e.clientY;
+    downX = e.clientX; downY = e.clientY; downTime = Date.now(); isTapDrag = false;
+    isDrag = true;
     el.setPointerCapture(e.pointerId);
   });
-  window.addEventListener('pointerup', () => { isDrag = false; });
+  window.addEventListener('pointerup', e => {
+    activePointers.delete(e.pointerId);
+    if (activePointers.size < 2) prevPinchDist = null;
+    // Tap detection: if not dragged and within 300ms, treat as tap
+    if (!isTapDrag && Date.now() - downTime < 300) {
+      mp.x = (e.clientX / innerWidth) * 2 - 1;
+      mp.y = -(e.clientY / innerHeight) * 2 + 1;
+      onNodeClick();
+    }
+    isTapDrag = false;
+    isDrag = false;
+  });
+  window.addEventListener('pointercancel', e => {
+    activePointers.delete(e.pointerId);
+    if (activePointers.size < 2) prevPinchDist = null;
+    isDrag = false;
+  });
   el.addEventListener('pointermove', e => {
-    // Update mouse for raycasting
-    mp.x = (e.clientX / innerWidth) * 2 - 1;
-    mp.y = -(e.clientY / innerHeight) * 2 + 1;
+    // Update pointer position in map
+    if (activePointers.has(e.pointerId)) {
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
 
-    if (isDrag && flyA === null) {
+    // Update mouse for raycasting (single pointer only)
+    if (activePointers.size <= 1) {
+      mp.x = (e.clientX / innerWidth) * 2 - 1;
+      mp.y = -(e.clientY / innerHeight) * 2 + 1;
+    }
+
+    // Check if this is a drag (moved > 10px from down position)
+    const moveDist = Math.sqrt(Math.pow(e.clientX - downX, 2) + Math.pow(e.clientY - downY, 2));
+    if (moveDist > 10) isTapDrag = true;
+
+    // Two-finger pinch/pan
+    if (activePointers.size === 2 && flyA === null) {
+      const pts = Array.from(activePointers.values());
+      const p0 = pts[0], p1 = pts[1];
+      const curDist = Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2));
+
+      if (prevPinchDist !== null) {
+        const delta = prevPinchDist - curDist;
+        orbit.dist = Math.max(8, Math.min(220, orbit.dist + delta * 0.4));
+        camFromOrbit();
+      }
+      prevPinchDist = curDist;
+      px = e.clientX; py = e.clientY;
+      return; // Don't do single-pointer orbit when 2 fingers active
+    }
+
+    if (isDrag && isTapDrag && flyA === null && activePointers.size <= 1) {
       const dx = e.clientX - px;
       const dy = e.clientY - py;
       if (dragBtn === 0) { // Left: rotate
@@ -1076,7 +1195,7 @@ function bindEvents() {
     }
 
     // Hover tooltip
-    updateHover(e);
+    if (!isTouchDevice) updateHover(e);
   });
   el.addEventListener('wheel', e => {
     if (flyA) return;
@@ -1085,10 +1204,21 @@ function bindEvents() {
   }, { passive: true });
   el.addEventListener('contextmenu', e => e.preventDefault());
 
-  el.addEventListener('click', onNodeClick);
-
   // UI
   document.getElementById('p-close').addEventListener('click', closePanel);
+
+  // Panel swipe-to-close
+  const panelEl = document.getElementById('panel');
+  let swipeStartX, swipeStartY;
+  panelEl.addEventListener('touchstart', e => {
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+  panelEl.addEventListener('touchmove', e => {
+    const dx = e.touches[0].clientX - swipeStartX;
+    const dy = e.touches[0].clientY - swipeStartY;
+    if (dx > 80 && Math.abs(dy) < 40) closePanel();
+  }, { passive: true });
   document.querySelectorAll('.fbtn').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
@@ -1139,24 +1269,28 @@ function updateHover(e) {
         o.material.uniforms.uBrightness.value = Math.min(o.userData.baseBrightness * 1.6, 1.8);
       ren.domElement.style.cursor = 'pointer';
     }
-    tip.textContent = o.userData.title;
-    tip.classList.add('vis');
-    tip.style.left = (e.clientX + 16) + 'px';
-    tip.style.top = (e.clientY - 12) + 'px';
+    if (!isTouchDevice) {
+      tip.textContent = o.userData.title;
+      tip.classList.add('vis');
+      tip.style.left = (e.clientX + 16) + 'px';
+      tip.style.top = (e.clientY - 12) + 'px';
+    }
   } else {
     if (hov && hov !== sel && hov.material.uniforms && hov.material.uniforms.uBrightness)
       hov.material.uniforms.uBrightness.value = hov.userData.baseBrightness;
     hov = null;
     ren.domElement.style.cursor = 'grab';
-    tip.classList.remove('vis');
+    if (!isTouchDevice) tip.classList.remove('vis');
   }
 }
 
 function onNodeClick() {
   rc.setFromCamera(mp, cam);
-  const hits = rc.intersectObjects(meshes.filter(m => m.visible));
+  const targets = (isTouchDevice && hitMeshes.length) ? hitMeshes : meshes.filter(m => m.visible);
+  const hits = rc.intersectObjects(targets);
   if (!hits.length) return;
-  selectMesh(hits[0].object);
+  const hitIdx = hits[0].object.userData.idx;
+  selectMesh(meshes[hitIdx]);
 }
 
 // Returns sorted {prev, next} meshes in the same category as the given mesh.
@@ -1180,6 +1314,7 @@ function getAdjacentMeshes(mesh) {
 
 // Select an orb: highlight it, fly the camera so the next orb is in view, open the panel.
 function selectMesh(o) {
+  if (navigator.vibrate) navigator.vibrate(10);
   sel = o;
 
   // Pass 1: restore any mesh currently wearing the bubble material
@@ -1339,6 +1474,7 @@ function buildSideNav(category, btnEl) {
           m.visible = true;
           glows[i].visible = true;
           if (m.userData.pl) m.userData.pl.visible = true;
+          if (hitMeshes[i]) hitMeshes[i].visible = true;
         });
         lines.forEach(l => l.visible = true);
         labels.forEach(s => s.visible = true);
@@ -1374,6 +1510,7 @@ function applyFilter() {
     m.visible = show;
     glows[i].visible = show;
     if (m.userData.pl) m.userData.pl.visible = show;
+    if (hitMeshes[i]) hitMeshes[i].visible = show;
   });
   lines.forEach(l => l.visible = activeF === 'all' || l.userData.category === activeF);
   labels.forEach(s => s.visible = activeF === 'all' || s.userData.category === activeF);
@@ -1399,7 +1536,7 @@ function flyTo(cp, lt) {
 }
 
 function flyHome() {
-  flyTo(new THREE.Vector3(0, 50, 140), new THREE.Vector3(0, 0, 0));
+  flyTo(isMobile ? new THREE.Vector3(0, 35, 100) : new THREE.Vector3(0, 50, 140), new THREE.Vector3(0, 0, 0));
 }
 
 function processFly() {
@@ -1451,7 +1588,8 @@ function tick() {
 
     glows[i].position.copy(m.position);
     glows[i].scale.setScalar(m.userData.size * 5 * pu);
-    if (m.userData.pl) m.userData.pl.position.copy(m.position);
+    if (!isMobile && m.userData.pl) m.userData.pl.position.copy(m.position);
+    if (isTouchDevice && hitMeshes[i]) hitMeshes[i].position.copy(m.position);
   });
 
   // Update chronological experience line endpoints to track floating orbs
