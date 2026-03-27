@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spatial Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --void: #06060d;
+  --surface: rgba(10, 10, 18, 0.92);
+  --border: rgba(255,255,255,0.05);
+  --border-hover: rgba(255,255,255,0.12);
+  --text: #d4d0cc;
+  --text-bright: #f0eeeb;
+  --text-muted: #6b6575;
+  --portfolio: #e8764e;
+  --experience: #a475d6;
+  --skills: #4ab8c2;
+  --education: #5cc98e;
+  --about: #e05577;
+  --display: 'Playfair Display', Georgia, serif;
+  --body: 'Outfit', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+canvas { display: block; }
+
+/* LOADER */
+#loader {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--void);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-orb {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--portfolio), transparent 70%);
+  animation: lpulse 1.4s ease-in-out infinite;
+}
+@keyframes lpulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
+.loader-text {
+  margin-top: 1.5rem; font-size: 0.7rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* SCENE */
+#scene-container { position: fixed; inset: 0; z-index: 1; }
+
+/* TOP BAR */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  padding: 1.4rem 2rem;
+  display: flex; justify-content: space-between; align-items: center;
+  pointer-events: none;
+}
+#topbar > * { pointer-events: auto; }
+.brand {
+  font-family: var(--display); font-size: 1.3rem;
+  font-weight: 500; color: var(--text-bright);
+}
+.brand em { font-style: italic; color: var(--portfolio); }
+
+/* FILTERS */
+#filters {
+  position: fixed; top: 4.5rem; left: 50%; transform: translateX(-50%);
+  z-index: 10; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+}
+.fbtn {
+  font-family: var(--body); padding: 6px 14px; border-radius: 100px;
+  font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+  color: var(--text-muted); transition: all 0.25s ease;
+  backdrop-filter: blur(10px);
+}
+.fbtn:hover { border-color: var(--border-hover); color: var(--text); }
+.fbtn.on { background: rgba(255,255,255,0.06); color: var(--text-bright); border-color: rgba(255,255,255,0.15); }
+.fbtn[data-c="portfolio"].on { color: var(--portfolio); border-color: var(--portfolio); }
+.fbtn[data-c="experience"].on { color: var(--experience); border-color: var(--experience); }
+.fbtn[data-c="skills"].on { color: var(--skills); border-color: var(--skills); }
+.fbtn[data-c="education"].on { color: var(--education); border-color: var(--education); }
+.fbtn[data-c="about"].on { color: var(--about); border-color: var(--about); }
+
+/* TOOLTIP */
+#tip {
+  position: fixed; z-index: 15; pointer-events: none;
+  font-size: 0.72rem; font-weight: 500; color: var(--text-bright);
+  padding: 5px 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 6px;
+  backdrop-filter: blur(14px); opacity: 0; transition: opacity 0.12s ease;
+  white-space: nowrap;
+}
+#tip.vis { opacity: 1; }
+
+/* DETAIL PANEL */
+#panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 555px; max-width: 94vw; z-index: 20;
+  background: var(--surface); border-left: 1px solid var(--border);
+  backdrop-filter: blur(40px) saturate(1.3);
+  transform: translateX(105%);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+#panel.open { transform: translateX(0); }
+.ph {
+  padding: 2rem 2rem 0;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  flex-shrink: 0;
+}
+.pclose {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; transition: all 0.2s; flex-shrink: 0;
+}
+.pclose:hover { background: rgba(255,255,255,0.04); color: var(--text-bright); }
+.pcat {
+  font-family: var(--mono); font-size: 0.62rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  font-weight: 500; margin-bottom: 0.5rem;
+}
+.ptitle {
+  font-family: var(--display); font-size: 1.65rem;
+  font-weight: 500; line-height: 1.25; color: var(--text-bright);
+  margin-bottom: 0.25rem;
+}
+.psub { font-size: 0.82rem; color: var(--text-muted); }
+.pbody {
+  padding: 1.6rem 2rem 2.5rem;
+  overflow-y: auto; flex: 1;
+}
+.pbody::-webkit-scrollbar { width: 3px; }
+.pbody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+.pimg { width: 100%; border-radius: 6px; margin-bottom: 1rem; display: block; object-fit: cover; }
+.pvid { width: 100%; border-radius: 6px; margin-bottom: 1rem; display: block; aspect-ratio: 16/9; background: #000; }
+.pdesc { font-size: 0.85rem; line-height: 1.75; color: var(--text); margin-bottom: 1.5rem; }
+.pdiv { height: 1px; background: var(--border); margin-bottom: 1.5rem; }
+.plbl {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 0.6rem; font-weight: 500;
+}
+.pmeta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 1.5rem; }
+.mval { font-size: 0.82rem; color: var(--text); }
+.mval .ml {
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 0.15rem; font-family: var(--mono);
+}
+.ptags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 1.5rem; }
+.ptag {
+  font-family: var(--mono); font-size: 0.65rem; padding: 4px 10px;
+  border-radius: 4px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.04); color: var(--text-muted);
+}
+.plinks { display: flex; flex-direction: column; gap: 0.5rem; }
+.plnk {
+  font-size: 0.8rem; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: opacity 0.2s;
+}
+.plnk:hover { opacity: 0.65; }
+.plnk::before { content: '\2192'; }
+
+/* BOTTOM BAR */
+#bbar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+  padding: 1.25rem 2rem;
+  display: flex; justify-content: space-between; align-items: center;
+  pointer-events: none;
+}
+#bbar > * { pointer-events: auto; }
+.navbtns { display: flex; gap: 6px; }
+.nbtn {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(10px); color: var(--text-muted);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; transition: all 0.2s;
+}
+.nbtn:hover { background: rgba(255,255,255,0.06); color: var(--text-bright); }
+.hint {
+  font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.06em;
+  animation: hfade 7s ease 2.5s forwards; opacity: 0;
+}
+@keyframes hfade {
+  0% { opacity: 0; } 12% { opacity: 0.7; } 80% { opacity: 0.7; } 100% { opacity: 0; }
+}
+
+/* PANEL NAV FOOTER */
+.pnav {
+  padding: 0.9rem 2rem 1.4rem;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--border); flex-shrink: 0; gap: 0.5rem;
+}
+.pnavbtn {
+  font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 7px 15px; border-radius: 100px;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+  color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 5px;
+}
+.pnavbtn:not(:disabled):hover { background: rgba(255,255,255,0.06); color: var(--text-bright); border-color: var(--border-hover); }
+.pnavbtn:disabled { opacity: 0.22; cursor: default; }
+.pnavpos { font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.08em; }
+
+/* SIDE NAV — dropdown anchored under hovered filter button */
+#sidenav {
+  position: fixed; z-index: 25;
+  max-height: 55vh; overflow-y: auto; overflow-x: hidden;
+  padding: 0.6rem 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px;
+  backdrop-filter: blur(40px) saturate(1.3);
+  width: 195px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.18s ease, width 0.22s ease;
+}
+#sidenav.open { opacity: 1; pointer-events: auto; }
+#sidenav:hover { width: 340px; }
+#sidenav::-webkit-scrollbar { width: 3px; }
+#sidenav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+.sn-label {
+  font-family: var(--mono); font-size: 0.58rem; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 0 1.25rem 0.6rem; display: block; white-space: nowrap;
+}
+.sn-item {
+  font-family: var(--body); font-size: 0.72rem; font-weight: 400;
+  color: var(--text-muted); padding: 9px 1.5rem 9px 1.25rem;
+  cursor: pointer; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 100%;
+  border-left: 2px solid transparent;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.sn-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.sn-item.sn-active { font-weight: 500; }
+
+@media (max-width: 640px) {
+  #panel { width: 100vw; max-width: 100vw; }
+  #filters { top: auto; bottom: 5rem; left: 0.75rem; right: 0.75rem; transform: none; }
+  #topbar, #bbar { padding: 1rem; }
+  #sidenav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-orb"></div>
+  <p class="loader-text">Mapping Phil's Universe...</p>
+</div>
+
+<div id="scene-container"></div>
+<div id="tip"></div>
+
+<div id="topbar">
+  <div class="brand">Who is <em>Phil Richards </em>?</div>
+  <div style="font-size:0.75rem;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;font-family:var(--mono)">philrich.wav@icloud.com <br> 828.228.3607</div>
+</div>
+
+<div id="filters">
+  <button class="fbtn on" data-c="all">All</button>
+  <button class="fbtn" data-c="about">About</button>
+  <button class="fbtn" data-c="education">Education</button>
+  <button class="fbtn" data-c="experience">Experience</button>
+  <button class="fbtn" data-c="portfolio">Portfolio</button>
+  <button class="fbtn" data-c="skills">Skills</button>
+ 
+</div>
+
+<div id="panel">
+  <div class="ph">
+    <div style="min-width:0">
+      <div class="pcat" id="p-cat"></div>
+      <h2 class="ptitle" id="p-title"></h2>
+      <p class="psub" id="p-sub"></p>
+    </div>
+    <button class="pclose" id="p-close">&times;</button>
+  </div>
+  <div class="pbody" id="p-body"></div>
+  <div class="pnav" id="p-nav"></div>
+</div>
+
+<div id="sidenav"></div>
+
+<div id="bbar">
+  <div class="navbtns">
+    <button class="nbtn" id="nav-home" title="Reset view">&#8962;</button>
+    <button class="nbtn" id="nav-zin" title="Zoom in">+</button>
+    <button class="nbtn" id="nav-zout" title="Zoom out">&minus;</button>
+  </div>
+  <div class="hint">Click nodes to explore &middot; Drag to orbit &middot; Scroll to zoom</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════
+//  BUBBLE SHADER  (GLSL ES 1.0 — Three.js r128 / WebGL1)
+// ════════════════════════════════════════════════════════
+const BUBBLE_VERT = `
+  uniform float uTime;
+  uniform float uDisplaceAmp;
+  uniform float uDisplaceSpeed;
+  uniform float uSelected;
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  varying vec3 vPosition;
+
+  void main() {
+    vNormal   = normalize(normalMatrix * normal);
+    vec4 worldPos = modelViewMatrix * vec4(position, 1.0);
+    vViewDir  = normalize(-worldPos.xyz);
+    vPosition = position;
+
+    float d = 0.0;
+    d += sin(position.x * 2.0  + uTime * uDisplaceSpeed * 1.2) * 0.35;
+    d += sin(position.y * 3.0  + uTime * uDisplaceSpeed * 0.8) * 0.25;
+    d += sin(position.z * 2.5  + uTime * uDisplaceSpeed * 1.0) * 0.20;
+    d += sin((position.x + position.y) * 4.0 + uTime * uDisplaceSpeed * 1.5) * 0.20;
+    // Selected orb gets 3x displacement amplitude for dramatic wobble
+    float amp = uDisplaceAmp * mix(1.0, 3.0, uSelected);
+    vec3 displaced = position + normal * d * amp;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+  }
+`;
+
+const BUBBLE_FRAG = `
+  uniform float uTime;
+  uniform vec3  uColor;
+  uniform float uFresnelPower;
+  uniform float uIridesFreq;
+  uniform float uIridesIntensity;
+  uniform float uSpecPower;
+  uniform float uGlowIntensity;
+  uniform float uBrightness;
+  uniform float uSelected;
+
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  varying vec3 vPosition;
+
+  void main() {
+    vec3  N = normalize(vNormal);
+    vec3  V = normalize(vViewDir);
+
+    // --- Fresnel ---
+    float NdotV  = max(dot(N, V), 0.0);
+    float fresnel = pow(1.0 - NdotV, uFresnelPower);
+
+    // --- Thin-film iridescence ---
+    // Normal: rainbow tinted toward category color
+    // Selected: pure rainbow — zero category color dilution
+    float f = fresnel * uIridesFreq;
+    vec3 irides;
+    irides.r = sin(f * 6.2832 + 0.0)    * 0.5 + 0.5;
+    irides.g = sin(f * 6.2832 + 2.0944) * 0.5 + 0.5;   // +120°
+    irides.b = sin(f * 6.2832 + 4.1888) * 0.5 + 0.5;   // +240°
+    // For selected, drain warm tones out of the rainbow by mixing toward blue-white
+    vec3 cooledIrides  = mix(irides, vec3(0.62, 0.88, 1.0), uSelected * 0.60);
+    float iridesBlend  = mix(0.45, 1.0, uSelected);
+    float colorMix     = mix(uIridesIntensity, 1.0, uSelected);
+    vec3 tintedIrides  = mix(uColor, cooledIrides, iridesBlend);
+    vec3 iridesColor   = mix(uColor, tintedIrides, colorMix);
+
+    // --- Specular (Blinn-Phong, light at 40,60,30) ---
+    vec3  L         = normalize(vec3(40.0, 60.0, 30.0));
+    vec3  H         = normalize(L + V);
+    float NdotH     = max(dot(N, H), 0.0);
+    float spec      = pow(NdotH, uSpecPower);         // tight hotspot
+    float specBroad = pow(NdotH, 10.0);               // wide chrome sheen
+
+    // --- Interior glow ---
+    // Normal: category-tinted; selected: pure neutral white-blue soap film
+    float glowCatMix = mix(0.72, 0.0, uSelected);
+    vec3 glowColor   = mix(vec3(0.85, 0.92, 1.0), uColor, glowCatMix);
+    vec3 glow        = glowColor * (1.0 - NdotV) * uGlowIntensity;
+
+    // --- Composite ---
+    // Unselected: original appearance — rim-only iridescence, single specular, low alpha.
+    // Selected:   chrome — face iridescence, 3x specular, broad sheen, more opaque.
+    float baseTint    = 0.18 * (1.0 - uSelected);
+    float iridMult    = mix(fresnel, mix(0.38, 1.4, fresnel), uSelected);
+    float specMult    = mix(1.0,  3.2, uSelected);
+    float sheenMult   = mix(0.0,  2.8, uSelected);
+    float alphaLow    = mix(0.08, 0.32, uSelected);
+    float alphaHigh   = mix(0.88, 0.96, uSelected);
+    float specAlpha   = mix(0.35, 0.40, uSelected);
+
+    vec3  col  = iridesColor * iridMult
+               + uColor      * baseTint
+               + vec3(1.0)              * spec      * specMult
+               + vec3(0.93, 0.97, 1.0) * specBroad * sheenMult
+               + glow;
+    float alpha = mix(alphaLow, alphaHigh, fresnel) + spec * specAlpha;
+
+    // Selected: override the Fresnel rim with blue-white translucent soap film.
+    vec3  soapRim = vec3(0.82, 0.95, 1.0) * 1.35;
+    float rimMask = uSelected * pow(fresnel, 1.8);
+    col   = mix(col,   soapRim,      rimMask * 0.95);
+    alpha = mix(alpha, alpha * 0.38, rimMask);
+
+    gl_FragColor = vec4(col * uBrightness, clamp(alpha, 0.0, 1.0));
+  }
+`;
+
+// ════════════════════════════════════════════════════════
+//  SOAP BUBBLE SHADER  (selected orb — thin-film optics)
+// ════════════════════════════════════════════════════════
+const SOAP_VERT = `
+  uniform float uTime;
+  uniform float uDisplaceAmp;
+  uniform float uDisplaceSpeed;
+
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  varying vec3 vWorldPos;
+
+  void main() {
+    // World-space position for thickness gradient
+    vec4 wp    = modelMatrix * vec4(position, 1.0);
+    vWorldPos  = wp.xyz;
+
+    // World-space normal (valid for uniform scale)
+    vNormal    = normalize(mat3(modelMatrix) * normal);
+
+    // World-space view direction toward camera
+    vViewDir   = normalize(cameraPosition - vWorldPos);
+
+    // Organic vertex wobble along object-space normal
+    float d = 0.0;
+    d += sin(position.x * 2.0  + uTime * uDisplaceSpeed * 1.2) * 0.35;
+    d += sin(position.y * 3.0  + uTime * uDisplaceSpeed * 0.8) * 0.25;
+    d += sin(position.z * 2.5  + uTime * uDisplaceSpeed * 1.0) * 0.20;
+    d += sin((position.x + position.y) * 4.0 + uTime * uDisplaceSpeed * 1.5) * 0.20;
+    vec3 displaced = position + normal * d * uDisplaceAmp;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+  }
+`;
+
+const SOAP_FRAG = `
+  uniform float uTime;
+  uniform float uFilmIOR;
+  uniform float uThicknessBase;
+  uniform float uThicknessRange;
+  uniform float uBrightness;
+
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  varying vec3 vWorldPos;
+
+  // Dim procedural env — shapes reflections without overpowering the film color
+  vec3 sampleEnv(vec3 R) {
+    vec3 col = vec3(0.012, 0.012, 0.022);
+    col += vec3(0.03, 0.04, 0.07) * pow(max(R.y, 0.0), 2.0);
+    float k1 = max(dot(R, normalize(vec3( 0.70,  0.55, -0.45))), 0.0);
+    col += vec3(0.45, 0.43, 0.40) * pow(k1, 18.0);   // tight key: white hotspot
+    float k2 = max(dot(R, normalize(vec3(-0.65,  0.30,  0.40))), 0.0);
+    col += vec3(0.04, 0.07, 0.18) * pow(k2, 8.0);    // cool blue fill
+    float k3 = max(dot(R, normalize(vec3( 0.10, -0.25, -0.96))), 0.0);
+    col += vec3(0.05, 0.07, 0.12) * pow(k3, 22.0);   // cold rim
+    return col;
+  }
+
+  void main() {
+    vec3 N = normalize(vNormal);
+    vec3 V = normalize(vViewDir);
+
+    float cosT1  = max(dot(N, V), 0.0);
+    float cosT2  = sqrt(max(0.0, 1.0 - (1.0 - cosT1 * cosT1) / (uFilmIOR * uFilmIOR)));
+
+    // Thickness keyed to the NORMAL direction (sphere-local), not world position.
+    // N components are always in [-1,1] regardless of where the orb sits in the scene,
+    // so every bubble gets the same smooth 1-2 band gradient — top lighter, bottom heavier,
+    // with a gentle organic ripple — matching real gravity-driven soap film drainage.
+    float thick = uThicknessBase
+      + uThicknessRange * (0.5 + 0.5 * sin(N.y * 2.5 + uTime * 0.25))
+      + 55.0 * sin(N.x * 2.0 + N.z * 1.5 + uTime * 0.12);
+
+    // Optical path difference (nm)
+    float opd = 2.0 * uFilmIOR * thick * cosT2;
+
+    // Per-wavelength thin-film interference (physics model, π phase flip included)
+    vec3 irides = vec3(
+      0.5 - 0.5 * cos(6.28318 * opd / 650.0),
+      0.5 - 0.5 * cos(6.28318 * opd / 510.0),
+      0.5 - 0.5 * cos(6.28318 * opd / 475.0)
+    );
+
+    // Desaturate toward pastel — real soap films are soft, not neon
+    float luma = dot(irides, vec3(0.299, 0.587, 0.114));
+    vec3 irides_soft = mix(vec3(luma), irides, 0.50);      // 50% desaturation
+    // Bias the hue toward cool blue-white (the character of a soap film)
+    irides_soft = mix(irides_soft, vec3(0.72, 0.86, 1.0), 0.28);
+
+    // Schlick Fresnel (IOR 1.33 → R0 ≈ 0.020)
+    float r0 = (uFilmIOR - 1.0) / (uFilmIOR + 1.0);
+    float R0 = r0 * r0;
+    float F  = R0 + (1.0 - R0) * pow(1.0 - cosT1, 5.0);
+
+    // Environment (kept dim: tints the rim without dominating)
+    vec3 Rdir   = reflect(-V, N);
+    vec3 envCol = sampleEnv(Rdir);
+
+    // Specular hotspot (scene directional light at 40, 60, 30)
+    vec3  L    = normalize(vec3(40.0, 60.0, 30.0));
+    vec3  H    = normalize(L + V);
+    float spec = pow(max(dot(N, H), 0.0), 256.0);
+
+    // Composite: pastel soap-film veil over transparent void
+    // F gates how much color is visible — almost none at centre, peaks at rim
+    vec3 col = irides_soft * (F * 1.2 + 0.04) * (vec3(0.85) + envCol)
+             + vec3(1.0) * spec * 0.80;
+
+    // Alpha: nearly invisible centre, translucent iridescent rim
+    float alpha = mix(0.03, 0.82, F);
+    alpha = max(alpha, spec * 0.78);
+
+    gl_FragColor = vec4(col * uBrightness, clamp(alpha, 0.0, 1.0));
+  }
+`;
+
+// ════════════════════════════════════════════════════════
+//  RESUME DATA
+// ════════════════════════════════════════════════════════
+const RESUME = {
+  about: [
+    { title: "Hello, I'm Phil!", subtitle: "Creative Product Leader & Force Multiplied Software Developer", 
+    desc: "I love to build great teams and craft cool things. \n\nI've worked at the intersection of Finance and Technology for close to a decade now, where I have:\n\n- Supported and shipped software reaching millions of users\n- Directed AI initiatives supporting 11k+ enterprise employees\n- Planned & facilitated workshops with executive leaders\n- Built / automated / managed many reports & workflows \n- Designed / Built enterprise & personal software solutions\n- Trained others on emerging technologies, Scrum/Agile, & more \n- Developed knowledge bases, user guides, & training materials\n- Managed / mentored junior PO's, analysts, & developers\n- Interviewed users, crafted roadmaps, & gathered requirements\n- Led product launches and software deployments\n- Implemented tools for analytics, digitial adoption, & more\n- Advised small businesses, non-profits, & individuals of all paths\n- Consulted institutional clients, large corporations, & hedge funds\n- Assisted organizations of scale and teams as small as (1)\n\nWhen I'm not hanging with stakeholders, designing solutions, or developing software, you may find me:\n\n- Volunteering\n- Spending time with my family, friends, and animals \n- Spending time in nature \n- Making music, playing drums\n- Skiing in the winter \n- Golfing in the other seasons \n- Investing in real estate\n- Trading stocks, currencies, cards, and more\n- Exploring new places and learning new things \n- Building and managing:\n  -- An economically sustainable farm \n   -- A nonprofit that will benefit my community \n  -- Businesses that support a passion or purpose\n\nLets build something great together.", 
+    tags: ["Product Management","Artificial Intelligence","Agentic AI","Blockchain & Digital Assets","SQL","Product Analytics","Financial Modeling","Scrum / Agile", "Real Estate","Farm Management","Percussion","Frontend","Mentoring"], links: [{ label:"GitHub (Coming Soon)", url:"#" },{ label:"LinkedIn", url:"https://www.linkedin.com/in/philrich11/" },{ label:"Email", url:"mailto:philrich.wav@icloud.com" }] }
+    ],
+
+    education: [
+    { title: "B.S.B.A. Finance & Banking", subtitle: "Appalachian State University", desc: "Coursework includes but not limited to:\n-FIN4660: Advanced Financial Management\n-FIN3850: Real Estate Principles and Practices\n-FIN3790: Banking and Financial Markets\n-FIN4610: Commercial Bank Management\n-FIN4770: Derivatives and Financial Risk Management\n-FIN3890: Survey of Investments\n-FIN3690: Financial Management\n-FIN2860: Personal Finance\n-FIN3100: Principles of Risk Management and Insurance\n-PLN3730: Land, Property, and Real Estate Law\n-ECO 2200: Business & Economics Statistics II\n-ECO2040: Macroeconomics I\n-ECO2030: Microeconomics\n-LAW 2150: Business Law I\n-ACC2100: Accounting I\n-ACC2110: Accounting II\n\n (Previously) Active member of ASU's Finance Student Association (FSA).",
+     tags: [,"Financial Modeling","MS Excel","Real Estate","Personal Finance","Financial Management","Accounting","Investments","Derivatives","Data Modeling"], meta: { Year:"2012 - 2017", Awards:"BSG: Business Strategy Game Industry Leader and Team MVP" } ,links: [{label:"Curriculum", url:"https://bulletin.appstate.edu/preview_program.php?catoid=1&poid=160&returnto=44"}] },
+    { title: "B.S.B.A. Supply Chain Management", subtitle: "Appalachian State University", desc: "Coursework includes but not limited to:\n-POM4564: Total Quality Management \n-SCM3720: Strategic Procurment and Global Sourcing\n-SCM3690: Global Supply Chain & Logistics\n-SCM3670: Six Sigma & Quality Management\n-SCM3660: Supply Chain Management\n-SCM3650: Production & Operations Management\n-MGT4750: Strategic Management\n-MGT3630: Organizational Behavior\n-MGT3620: Human Resource Management\n-MKT3260: Managing Distribution Channels\n-MKT3050: Principles of Marketing\n-STT2810: Introduction to Statistics\n-CIS2050: Information Technology in the Organization\n\n (Previously) Active member of Appalachian Supply Chain Club, APICS, and CSCMP.", 
+    tags: ["Management Information Systems","Computer Information Systems","Distribution Channels","Lean","Six Sigma","Marketing","Operations Management"], meta: { Year:"2012 - 2017", Awards:"BSG: Business Strategy Game Industry Leader and Team MVP" } ,links: [{label:"Curriculum", url:"https://bulletin.appstate.edu/preview_program.php?catoid=1&poid=276&returnto=44"}]},
+    { title: "Certified Scrum Master (CSM)", subtitle: "Professional Certification", desc: "Experienced in aligning cross-functional teams around shared goals to deliver high-impact solutions. Primarily focused on creating adaptive, high-performing teams that thrive in fast-paced environments, combined with strategic planning and hands-on facilitation to deliver quality products on time and within scope.", tags: ["Servant Leadership","Sprint Planning", "Daily Stand-ups","Retrospectives", "Backlog Grooming", "Impediment Removal", "Velocity Tracking", "Capacity Planning", "Conflict Resolution", "Stakeholder Management","Change Management", "Cross-Functional Team Leadership","Burn-down Charts","Velocity Tracking", "Scrum Ceremonies"],
+    meta: { Year:"2022-2024"}, links: [{ label: "Certified Badge", url: "https://bcert.me/seycffidc" },{ label: "What is this?", url: "https://www.scrumalliance.org/get-certified/scrum-master-track/certified-scrummaster" }
+    ]}
+    /* { title: "AWS Solutions Architect", subtitle: "Professional Certification", desc: "Certified in designing distributed systems on AWS — compute, storage, networking, and security best practices.", tags: ["Cloud Architecture","AWS","Infrastructure"], meta: { Year:"2023", Credential:"SAP-C02" } }
+  */
+],
+experience: [
+    
+{
+title: "AI Consultant: Digital Product Owner / GenAI Delivery Manager",
+    subtitle: "(Optomi) Ally Financial",
+    desc: "I currently oversee a portfolio of enterprise generative AI use cases across Ally, estimated to deliver $20M in savings & incremental revenue in 2026, with a $100M goal by the end of 2027. In our enterprise toolbelt, we have purpose built proprietary solutions, leveraging industry leading large language models (LLMs), as well as a variety of third party, vendor built solutions that we have integrated & continue to integrate into workflows & processes.\n\n\I work with teams across the organization to: strategize & architect the actual mechanics of integrating AI into their workflows, build ai agents to streamline & execute processes, learn how to prompt engineer effectively, identify vendor solutions that fit team + orgizational needs, understand how to deploy solutions without creating security or governance issues, & measure what drives value.\n\n I facilitate product workshops across various LoBs to identify high-value use cases and support teams in turning ideas into production solutions. I leverage AI Agents, Power Automate, CoPilot Studio, LangGraph, MCP servers, & other technologies to automate research functions, competitive analysis, & internal workflows. ",
+    tags: ["AI Product Strategy", "GenAI Implementation", "Digital Product Management", "AI/ML Governance", "Vendor Evaluation", "Cross-Functional Leadership", "Agentic AI", "Prompt Engineering", "KPI Design", "Workflow Automation", "API Integration", "LangGraph", "MCP Servers", "Code Gen Tools", "Text-to-SQL"],
+    meta: { Period: "April 2025 — Present", Location: "Charlotte, NC", Type: "Contract", Industry: "AI, Digital Banking" },
+    links: [{ label: "Ally Financial", url: "https://www.ally.com/" },{ label: "GenAI @ Ally Financial", url: "https://www.ally.com/about/generative-ai/" },{ label: "Ally.AI Enterprise Rollout: 7.23.25", url: "https://media.ally.com/2025-07-23-Ally-Financial-rolls-out-proprietary-AI-platform-enterprise-wide" }]
+  },
+  {
+    title: "Senior Innovation Product Owner / Product Manager",
+    subtitle: "Forvis Mazars US",
+    desc: "Brought research-backed ideas and innovative product strategies through the EDGE product management lifecycle to build professional software solutions. Drove product improvements through research, market analysis, and user behavior insights, aligning roadmaps with business goals & user needs.\n\n Established practices, guides, and OKRs leading to a 22% increase in feature adoption and 10% increase in UX satisfaction on the ProBank Advisor platform. Averaged a 98.7% sprint completion rate while mentoring a team of product owners.\n\nLed definition and design of a dynamic investment and business valuation tool to streamline internal audit process, and a PCI compliance tool aimed to reduce manual efforts by up to 20 hours per engagement(~15% time savings).\n\nResearched AI technologies to lead AI workshops for prompt engineering and MS CoPilot best practices. Reinvented a 'Blockchain dictionary' within enterprise sharepoint instance, adding more descriptive fields, redesigning page to increase user satisfaction, and increasing total entries from 22 to over 350 (16x) utilizing AI tools for all research.",
+    tags: ["Product Strategy", "Figma", "Azure DevOps", "GenAI", "Blockchain", "Pendo", "SQL", "Tableau", "Scrum", "XR/VR/AR", "Miro","Workshop Facilitation","Stakeholder Mgmt","A/B Testing"],
+    meta: { Period: "Sep 2023 — April 2025", Location: "Virtual, NC", Type: "Full-time", Industry: "Professional Services" },
+    links: [{ label: "Forvis Mazars", url: "https://www.forvismazars.com" },{ label: "Forvis Mazars launches ProBank Advisor", url: "https://www.forvismazars.us/about-us/newsroom/news-releases/forvis-mazars-launches-probank-advisor" },{ label: "About ProBank Advisor", url: "https://www.forvismazars.us/services/products/probank-advisor" }]
+  },
+  {
+    title: "Lead Product Manager — Deposit Products",
+    subtitle: "(Apex Systems) Wells Fargo",
+    desc: "Supporting the Small Business Banking Deposit Products team, I sat at at the intersection of deposits product strategy, small business banking operations, data analytics, and digital transformation, During my time there I worked on everything imaginable, from competitive intelligence & portfolio strategy to digital platform development & process automation.\n\n I've led discovery sessions to map current-state workflows, designed future-state models, and guided cross-functional teams of bankers, developers, analysts, and product owners through building and enhancing deposit products for Small Business Banking.\n\n Using SQL, Excel, Tableau, and more, I conducted trend analysis and examined account usage patterns to identify underperforming products, driving simplification of the portfolio and the strategic sunset of products that no longer served the business. Engaged with third-party global data vendor to source market data and performed competitive interest rate analysis.\n\nBy redesigning cash vault reporting workflows, I reduced the time required for daily tasks by over 83%, freeing the product team to focus on higher-value work instead of manual processes. I also began the exploration of AI solutions to assess their potential for closing process gaps. ",
+    tags: ["Product Management","Deposit Products","Excel","VBA","Macros","SQL", "Tableau", "Competitive Market Analysis", "Interest Rate Analysis", "Risk Mitigation", "Data Automation"],
+    meta: { Period: "Jan 2022 — Sep 2023", Location: "Charlotte, NC", Type: "Contract", Industry: "Banking / Finance" },
+    links: [{ label: "Wells Fargo - Biz", url: "https://www.wellsfargo.com/biz/" },{ label: "Apex Systems", url: "https://www.apexsystems.com/" }]
+  },
+  {
+    title: "Senior Supply Chain BI Analyst",
+    subtitle: "(Brooksource) Charter Communications",
+    desc: "Oversaw the supply chain BI Kanban board to establish clear documentation and track team progress. Interrogated large datasets with SQL daily to provide insights and resolutions for business users.\n\nLeveraged MicroStrategy, Tableau, and Excel to build dashboards, reports, and technical solutions for business partners and executives. Developed and maintained BI metrics and KPIs enabling leadership to monitor performance and align strategies with organizational goals.",
+    tags: ["Business Intelligence", "SQL", "MicroStrategy", "Tableau", "ETL", "KPI Development", "Kanban", "Data Analysis", "Adhoc Reporting"],
+    meta: { Period: "Jun 2021 — Jan 2022", Location: "Remote", Type: "Contract", Industry: "Telecom" },
+    links: [{ label: "Charter Communications", url: "https://corporate.charter.com/" },{ label: "Brooksource", url: "https://www.brooksource.com/" }]
+  },
+  {
+    title: "Senior Technical Business Analyst",
+    subtitle: "(Brooksource) TIAA — Wealth Management",
+    desc: "Planned and conducted analysis of business systems and functional issues for wealth management and financial planning software. Led SAFe/Agile ceremonies including stand-ups, PI planning, and backlog grooming.\n\nPartnered with user research teams to craft user tests and determine pain points. Collaborated with financial consultants, planners, and investment managers to develop insights and drive feature development. Mentored junior and mid-level business analysts in technical tools and agile principles.",
+    tags: ["SAFe/Agile", "JIRA", "Oracle SQL", "Splunk", "PI Planning", "User Research", "Wealth Management", "Mentorship"],
+    meta: { Period: "Jan 2021 — Jun 2021", Location: "Remote", Type: "Contract", Industry: "Financial Services" },
+    links: [{ label: "TIAA - Wealth Management", url: "https://www.tiaa.org/public/invest/services/wealth-management" },{ label: "TIAA - Wealth Management & Investment Products", url: "https://www.tiaa.org/public/invest/services/wealth-management/investment-products" },{ label: "TIAA - Retirement calculators and financial tools", url: "https://www.tiaa.org/public/tools-calculators" },{ label: "TIAA - Financial Education: Essentials", url: "https://www.tiaa.org/public/education/essentials" }, { label: "Brooksource", url: "https://www.brooksource.com/" }]
+  },
+  {
+    title: "Senior Data Quality Consultant",
+    subtitle: "(Aston Carter) Wells Fargo — Capital Markets, Commercial & Investment Banking",
+    desc: "Defined data controls for 28 systems of capital markets data to ensure clean and compliant records for FDIC regulatory reporting. Examined data streams for patterns, defects, and breaks to ensure the highest level of data integrity.\n\nAssisted leadership with change management initiatives regarding Agile Transformation and data quality governance. Implemented processes to monitor and analyze key metrics across multiple data systems, enhancing reporting accuracy and driving actionable insights.",
+    tags: ["Data Quality", "SQL", "Tableau", "JIRA", "Confluence", "Regulatory Compliance", "FDIC", "Agile Transformation", "KPIs"],
+    meta: { Period: "Aug 2020 — Jan 2021", Location: "Remote", Type: "Contract", Industry: "Capital Markets" },
+    links: [{ label: "Wells Fargo - Corporate & Investment Banking", url: "https://www.wellsfargo.com/cib" },{ label: "Wells Fargo - Capital Markets", url: "https://www.wellsfargo.com/cib/investment-banking/capital-markets/" },{ label: "Aston Carter", url: "https://www.astoncarter.com/en" }]
+  },
+  {
+    title: "Business Initiatives Consultant III",
+    subtitle: "(Aston Carter) Wells Fargo — Capital Markets, Commercial & Investment Banking",
+    desc: "Sourced, mapped, and cleaned capital markets data from 28 source systems to compile records for SEC and FDIC regulatory reporting. Remediated critical errors in safekeeping data tables, reducing total errors by 98.8%.\n\nLed cross-functional discovery sessions to define business needs and translate them into technical requirements. Partnered with program management and technology partners to plan and implement software releases on the eCMP platform.",
+    tags: ["Regulatory Reporting", "Tableau", "JIRA", "Data Remediation", "SEC/FDIC", "eCMP", "Cross-Functional", "Discovery"],
+    meta: { Period: "Mar 2020 — Aug 2020", Location: "Remote", Type: "Contract", Industry: "Capital Markets" },
+    links: [{ label: "Wells Fargo - Corporate & Investment Banking", url: "https://www.wellsfargo.com/cib" },{ label: "Wells Fargo - Capital Markets", url: "https://www.wellsfargo.com/cib/investment-banking/capital-markets/" },{ label: "Aston Carter", url: "https://www.astoncarter.com/en" }]
+  },
+  {
+    title: "Product Business Analyst II",
+    subtitle: "Donnelley Financial Solutions",
+    desc: "Automated regulatory financial reporting for hedge funds using proprietary software to simplify investor communications and SEC regulatory reports. Supported all phases of the development lifecycle including client discovery, implementation, development, testing, and product support.\n\nImplemented and led a third-shift support team to provide resources for new initiatives and expanded client interaction. Trained multiple global offshore teams remotely for 24/7/365 uninterrupted support.",
+    tags: ["Financial Reporting", "UAT Testing", "XML","ArcSuite","ArcReporting", "Client Onboarding", "Offshore Training", "SDLC","Hedge Fund Reporting","Fund Structures", "Portfolio Management","Late Nights"],
+    meta: { Period: "Feb 2019 — Jul 2020", Location: "Remote", Type: "Full-time", Industry: "FinTech / RegTech" },
+    links: [{ label: "DFIN - ArcReporting", url: "https://www.dfinsolutions.com/products/arcreporting" },{ label: "DFIN - Active Disclosure", url: "https://www.dfinsolutions.com/products/activedisclosure" },{ label: "DFIN - E2E Financial Reporting", url: "https://www.dfinsolutions.com/solutions/financial-reporting-private-companies" }, { label: "DFIN - Investment Fund Compliance Platform", url: "https://www.dfinsolutions.com/solutions/investment-regulatory-compliance" } ]
+  },
+  {
+    title: "Accounts Receivable Analyst",
+    subtitle: "Electrolux",
+    desc: "Managed $10 million in receivables, creating weekly and monthly aging reports to track past dues and resolve payments. Reduced manual labor efforts by 12% by automating daily activities with custom Excel macros using SQL, Power Query, and VBA.\n\nMonitored Sears' cash orders during bankruptcy procedures to reduce liability while continuing product delivery. Assisted with data migration from JD Edwards to SAP ERP.",
+    tags: ["Accounts Receivable", "SQL", "VBA", "Power Query", "SAP", "JD Edwards", "Financial Analysis", "Order to Cash"],
+    meta: { Period: "Aug 2018 — Feb 2019", Location: "Charlotte, NC", Type: "Full-time", Industry: "Consumer Goods" },
+    links: [{ label: "Electrolux", url: "https://www.electrolux.com/en" } ]
+  },
+  {
+    title: "Installed Sales Project Coordinator",
+    subtitle: "Lowe's Home Improvement",
+    desc: "Managed a workload averaging 300+ active installations including highly sensitive escalations. Collaborated with customers, vendors, and store management to coordinate project logistics and materials.\n\nPlanned project timelines and sequencing for successful workflow across multiple service providers. Demonstrated lean business practices with installation management to increase profitability and reduce waste.",
+    tags: ["Project Coordination", "Logistics", "Lean Practices", "SLA Management", "Vendor Relations", "Conflict Resolution"],
+    meta: { Period: "Jul 2017 — Aug 2018", Location: "Wilkesboro, NC", Type: "Full-time", Industry: "Retail" },
+    links: [{ label: "Lowes Home Improvement", url: "https://corporate.lowes.com/" } ]
+  },
+  {
+    title: "Owner & Founder",
+    subtitle: "High Country Technologies",
+    desc: "Founded and led a consumer electronics repair business with a team of 8 employees. Repaired thousands of devices — primarily iPhones, iPads, MacBooks, and iMacs. Strategically sourced devices and OEM hardware globally to sustain inventory.\n\nUtilized SEO and organic marketing techniques to drive brand awareness and revenue growth. Oversaw reverse logistics and implemented waste management and recycling initiatives. Organized an acquisition with a larger competitor (Apple Juice iRepairs) and sold the business in May 2017.",
+    tags: ["Entrepreneurship", "Team Leadership", "SEO", "Supply Chain", "Reverse Logistics", "M&A", "Marketing", "Hardware Repair"],
+    meta: { Period: "Jun 2013 — May 2017", Location: "Boone, NC", Type: "Founder", Industry: "Consumer Electronics" },
+    links: [{ label: "Apple Juice", url: "https://www.apple-juice.com/" } ]
+  },
+],
+     
+    portfolio: [
+    { title: "PW Universe", subtitle: "Website: New Real Estate Developer", desc: "Work In Progress: Design + build of a website for a real estate team of two (Me and a good friend from grade school) looking to provide a legitimate web presence for future funding and brand needs. We currently own 2 acres in Boone, NC and are looking to develop rental properties there", image:"https://www.weduitglobal.com/Weduitphotos/PWuni.png", tags: ["PHP","Wordpress","Web hosting","Website Design"], meta: { Role:"Lead Developer", Timeline:"2022 — Present", Team:"2 humans", Status:"Live" }, links: [{ label:"View Work in Progress", url:"https://www.pwuniverse.com" }]  }, 
+    { title: "PhilRich.Live", subtitle: "Website Design Speedrun", desc: "Developed website in 1 hour from scratch, coding via HTML/CSS to design a live prototype for a solo music business", image: "https://weduitglobal.com/Weduitphotos/prlcom.jpg",tags: ["HTMl","CSS","Web hosting","Website Design","Digital Assets","Brand Palattes"], meta: { Role:"Lead Developer and Designer", Timeline:"2025 — Present", Team:"Phil Rich", Status:"Live" }, links: [{ label:"View Work in Progress", url:"https://www.philrich.live" }]  }, 
+    { title: "Rapid Website Design", subtitle: "Case Study & Potential build for client", desc: "Was tasked with a case study for an interview, while concurrently working with a friend on website plans. A compliation of Features, User Stories, Personas, and Mock ups, completed in one sitting.",image: "https://weduitglobal.com/Weduitphotos/CMACS_RUBS_mockups.png", tags: ["Miro","Mockups","User Stories","Agile","Website design","wireframing"], meta: { Role:"Product & Design Lead", Timeline:"2023", Team:"Phil Rich", Status:"COMPLETE" }, links: [{ label:"View Work Here", url:"https://weduitglobal.com/Weduitphotos/CMACS_RUBS_mockups.png" }]  }, 
+    { title: "Blue Rock Nurseries", subtitle: "Hobby Farm to be scaled", desc: "Established in 2020, a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants(1250 starter plants in 2024), will grow upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.",image: "https://weduitglobal.com/Weduitphotos/brn.jpg",video: "https://weduitglobal.com/Weduitphotos/brn.mp4", tags: ["Soil & Plant Biology","Chemistry","JADAM","Korean Natural Farming (KNF)","Organic Inputs","HOT Peppers"], meta: { Role:"Farmer, Sales Lead, Social Media Scrub", Timeline:"2020-", Team:"Phil Rich", Status:"In season" }, links: [{label: "Website Under Construction", URL: "https://www.bluerocknurseries.com/"}, {label:"Instagram", url: "https://www.instagram.com/bluerocknurseries/"}]   }, 
+    { title: "Custom Financial Tools / Spreadsheets", subtitle: "Building a portfolio of financial tools for personal and commercial use.", desc:"Spreadsheets:\n-time_tracker.xlsx\n- simple_budget.xlsx\n- dynamic_budget.xlsx\n- seller_financing_model.xlsx\n- startup_cost_calculator.xlsx  \n- break_even_analysis.xlsx \n- business_revenue_forecast.xlsx \n- employee_payroll_estimator.xlsx \n- cogs_profit_margin_calculator.xlsx \n- ecommerce_order_fulfillment_log.xlsx \n- rental_property_cash_flow_analyzer.xlsx \n- house_flipping_roi_calculator.xlsx \n- str_airbnb_revenue_analyzer.xlsx \n- property_comparison_tool.xlsx \n- rental_portfolio_dashboard.xlsx \n- deal_sensitivity_analysis.xlsx \n- mortgage_payoff_accelerator.xlsx \n- real_estate_agent_commission_tracker.xlsx \n- stock_portfolio_dividend_tracker.xlsx \n- net_worth_investment_dashboard.xlsx \n- restaurant_food_cost_calculator.xlsx \n- profit_loss_statement.xlsx ",
+      tags: ["MS Excel","Financial Modeling","Solution Engineering","Custom Tooling","Math","Process Improvement","Generative","AI"], image: "https://weduitglobal.com/Weduitphotos/sellerfinancingcalc.png", meta: { Role:"Product Lead & Developer", Timeline:"2020-", Team:"Phil Rich", Status:"Ongoing" }, links: [{ label:"Preview: Seller Financing Calc", url:"https://weduitglobal.com/Weduitphotos/sellerfinancingcalc.png" }]  }, 
+    { title: "SiteCraft", subtitle: "Real Estate Investor Software Suite", desc: "A new project I started to enable my real estate journey with the technical tools needed. Currently working on a project management tool to help manage construction projects, 3D autoCAD blueprint builder, property recon tools, and more.",video: "https://www.weduitglobal.com/Weduitphotos/sitecraft_pm.mp4",tags: ["Real Estate","Property Search", "Project Management","AutoCAD","Planning Tools","Calculators","Solution Design","Software Architecture"], meta: { Role:"Product & Design Lead, Software Development Manager", Timeline:"2026-", Team:"Phil Rich", Status:"In Progress" }, links: [{ label:"Watch a clip of SiteCraft PM", url:"https://weduitglobal.com/Weduitphotos/sitecraft_pm.mp4" },{ label:"Watch a clip of Planforge", url:"https://weduitglobal.com/Weduitphotos/planforge.mp4" }]  }, 
+    { title: "Golfballin", subtitle: "Golf Ball Designer", desc: "A passion project I'm working on, one day I will pay my golf bill with gall balls.",video: "https://www.weduitglobal.com/Weduitphotos/jolfball.mp4", tags: ["Golf","Product Design", "Pricing","Planning Tools","Solution Design","Software Architecture"], meta: { Role:"Product & Design Lead, Software Development Manager", Timeline:"2026-", Team:"Phil Rich", Status:"In Progress" }, links: [{ label:"Watch a clip", url:"https://weduitglobal.com/Weduitphotos/jolfball.mp4" }]  }, 
+    // { title: "", subtitle: "", desc: "", tags: [""], meta: { Role:"Product & Design Lead", Timeline:"2023", Team:"Phil Rich", Status:"COMPLETE" }, links: [{ label:"View Work Here", url:"" }]
+    
+    // { title: "E-Commerce Platform", subtitle: "Full-Stack Web Application", desc: "Designed and built a modern e-commerce platform handling 10K+ daily transactions. Features real-time inventory management, AI-powered product recommendations, and a headless CMS.", tags: ["React","Node.js","PostgreSQL","Redis","AWS"], meta: { Role:"Lead Developer", Timeline:"2024 — Present", Team:"5 engineers", Status:"Live" }, links: [{ label:"View Live", url:"#" },{ label:"Case Study", url:"#" }] },
+    // { title: "AI Analytics Dashboard", subtitle: "Data Visualization Suite", desc: "Interactive analytics dashboard surfacing ML model performance, A/B test results, and predictive forecasts for a data science team of 20+ researchers.", tags: ["TypeScript","D3.js","Python","FastAPI","Docker"], meta: { Role:"Frontend Architect", Timeline:"2023 — 2024", Team:"3 engineers", Status:"Production" }, links: [{ label:"GitHub", url:"#" }] },
+    // { title: "Mobile Fitness App", subtitle: "Cross-Platform Mobile", desc: "Fitness tracking app with workout planning, progress analytics, social challenges, and wearable integration. 50K+ downloads in first quarter.", tags: ["React Native","Firebase","HealthKit","GraphQL"], meta: { Role:"Solo Developer", Timeline:"2023", Team:"Solo", Status:"App Store" }, links: [{ label:"App Store", url:"#" },{ label:"Play Store", url:"#" }] },
+    // { title: "Design System", subtitle: "Component Library", desc: "Comprehensive design system with 60+ accessible components, theming engine, and automated visual regression testing. Adopted across 4 product teams.", tags: ["Storybook","React","Figma API","Chromatic","a11y"], meta: { Role:"Design Engineer", Timeline:"2022 — 2023", Team:"3 people", Status:"Internal" }, links: [{ label:"Documentation", url:"#" }] },
+    // { title: "Real-Time Chat System", subtitle: "WebSocket Infrastructure", desc: "Scalable real-time messaging supporting 100K concurrent connections with E2E encryption, file sharing, and threaded conversations.", tags: ["Go","WebSockets","Redis Pub/Sub","Kubernetes"], meta: { Role:"Backend Engineer", Timeline:"2022", Team:"4 engineers", Status:"Production" }, links: [{ label:"Architecture Doc", url:"#" }] }
+  ],
+   
+skills: [
+    { title: "Product Management", subtitle: "Current Professional Focus", desc: "Have a passion for building software that users love and need. I love working with development teams and am always curious about how things are built, and how we can improve them.", tags: ["Agile","Scrum","Kanban","Cross-functional Collaboration","Requirement Gathering","Prototyping","Product Roadmaps","Portfolio Management","Product Backlog", "Stakeholder Management"] },
+    { title: "Frontend Development", subtitle: "Developing faster than ever. Core Dev Focus", desc: "Deep expertise in modern frontend frameworks and tooling. Focus on performance, accessibility, and delightful user experiences with smooth animations.", tags: ["React","TypeScript","Next.js","Vue","Tailwind CSS","Three.js","GSAP","Framer Motion"] },
+    { title: "Fullstack Development", subtitle: "Learning, Learning, Learning", desc: "I've been messing around with software since I was a kid. I am constantly trying to keep up with the trends, and am thankful for AI coding tools.", tags: ["Frontend Dev","Python","SQL","C","PHP","APIs","PostgreSQL","Web Hosting","MySpace"], links: [{label:"The Complete Web Developer Bootcamp",url:"https://zerotomastery.io/courses/coding-bootcamp/"}] },
+    { title: "Design & UX", subtitle: "Cross-Discipline", desc: "Design and engineer professional, clean, and/or cool experiences — strong skills in UI/UX, prototyping, design systems, and user research.", tags: ["Miro","Figma","Design Systems","Prototyping","Wireframing","User Research","Accessibility","Motion Design"] },
+    { title: "Product Adoption & Analytics", subtitle: "Pendo Admin", desc: "Will update later. See experience section for more info.", tags: ["Pendo","User Behavior","A/B Testing","User Guides","User Retention", "Stickiness","Product Metrics"], links: [{label: "Pendo Admin", URL: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url"}, {label:"Pendo Essentials for Web", url: "https://www.credly.com/badges/0f7c8eec-0e7d-4f23-82f7-8a4d362eda2b/public_url"}] },
+    { title: "Data Analytics", subtitle: "Former Data Analyst", desc: "Will update later. See experience section for more info.", tags: ["SQL","Python","Business Intelligence","Reporting","Excel","Data Modeling","Data Engineering","Data pipelines"], links: [{label: "The Complete SQL Bootcamp 2022: Go from Zero to Hero", URL: "https://www.udemy.com/certificate/UC-dff15609-d389-4656-8228-c6a1d0104135/"}, {label:"Python for Finance: Investment Fundamentals & Data Analytics(In Progress)", url: "https://www.udemy.com/course/python-for-finance-investment-fundamentals-data-analytics/"}] },
+    { title: "Natural Farming", subtitle: "Passion & Hobby", desc: "I've been gardening since 2020, and I started a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants(1250 starter plants in 2024), will grow upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.", tags: ["Soil & Plant Biology","Chemistry","JADAM","Korean Natural Farming (KNF)","Organic Inputs","HOT Peppers"],links: [{label: "Website Under Construction", URL: "https://www.bluerocknurseries.com/"}, {label:"Instagram", url: "https://www.instagram.com/bluerocknurseries/"}] },
+    { title: "Making Music", subtitle: "Passion & Hobby", desc: "Born into the world of radio and DJing, I have the following experience: \n-20+ years: Drums & Percussion\n-6+ years: Music Production\n-2+ years: Casual DJ", links: [{label:"Book Me",url:"https://philrich.live"}],tags: ["Drums","Music Production","Music Lessons","DJ your wedding","Cats love it"] },
+    { title: "Golf (Stick + Disc)", subtitle: "Passion & Hobby", desc: "Being a lifelong athelete in adulthood, I am glad I started playing Golf in 2022. I truly enjoy the excuse to get outside with people I care about and enjoy nature. I push myself to play at least once a week when possible, if not more. Working on some golf ideas...", tags: ["Lefty","Handicap = 17.8"] },
+    { title: "(Future) Ski Instructor", subtitle: "Passion & Hobby", desc: "I have always loved the snow, but I fell in love with skiing in 2014 while in college at App State. I was fortunate enough to learn both informally from a 12 year old ski wizard, and formally through an intermediate ski class for a credit in physical education.", tags: ["Pizza","French Fry","Armada Skis","Twin Tips","when_Japan?"] },
+   
+     // { title: "", subtitle: "Learning some cool things", desc: "", tags: ["Node.js","Python","Go","PostgreSQL","MongoDB","AWS","Docker","Terraform"] },
+
+]
+ 
+  
+};
+
+// ════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════
+const CC = {
+  portfolio:   { hex:'#e8764e', i:0xe8764e },
+  experience: { hex:'#a475d6', i:0xa475d6 },
+  skills:     { hex:'#4ab8c2', i:0x4ab8c2 },
+  education:  { hex:'#5cc98e', i:0x5cc98e },
+  about:      { hex:'#e05577', i:0xe05577 },
+};
+const CATS = Object.keys(RESUME);
+const SPREAD = 45;
+
+// Extract the start year from an item's metadata
+function getStartYear(item, cat) {
+  if (cat === 'experience' && item.meta && item.meta.Period) {
+    const m = item.meta.Period.match(/\d{4}/);
+    return m ? parseInt(m[0]) : null;
+  }
+  if (cat === 'education' && item.meta && item.meta.Year) {
+    return parseInt(item.meta.Year);
+  }
+  return null;
+}
+
+// Category cluster centers — populated during NL building, used by buildLabels
+const CAT_CENTERS = {};
+
+// Layout constants for the helix spiral used by time-based categories
+const GOLDEN_ANG = Math.PI * (3 - Math.sqrt(5)); // ≈137.5° — golden angle per step
+const HELIX_R    = 9;   // helix radius (xz plane)
+const HELIX_STEP = 4.5; // vertical distance (y) between consecutive nodes
+
+// Build flat node array
+// — experience & education: 3-D helix, oldest at bottom → newest at top
+// — all other categories: evenly-spaced ring cluster in the xz plane
+const NL = [];
+CATS.forEach((cat, ci) => {
+  const a  = (ci / CATS.length) * Math.PI * 2 - Math.PI * 0.5;
+  const cx = Math.cos(a) * SPREAD;
+  const cz = Math.sin(a) * SPREAD;
+
+  if (cat === 'experience' || cat === 'education') {
+    const items = RESUME[cat].slice().sort(
+      (p, q) => (getStartYear(p, cat) || 0) - (getStartYear(q, cat) || 0)
+    );
+    const n     = items.length;
+    const baseY = -((n - 1) * HELIX_STEP) / 2; // centre spiral at y = 0
+    const topY  = baseY + (n - 1) * HELIX_STEP;
+    CAT_CENTERS[cat] = { cx, cz, labelY: topY + 9 };
+
+    items.forEach((item, ii) => {
+      NL.push({
+        ...item, category: cat,
+        pos: {
+          x: cx + Math.cos(ii * GOLDEN_ANG) * HELIX_R,
+          y: baseY + ii * HELIX_STEP,
+          z: cz + Math.sin(ii * GOLDEN_ANG) * HELIX_R,
+        },
+        size: 1.55,
+      });
+    });
+
+  } else {
+    const items    = RESUME[cat];
+    const n        = items.length;
+    const clusterR = 4 + n * 1.5; // radius scales gently with item count
+    CAT_CENTERS[cat] = { cx, cz, labelY: 15 };
+
+    items.forEach((item, ii) => {
+      const sa = (ii / Math.max(n, 1)) * Math.PI * 2;
+      NL.push({
+        ...item, category: cat,
+        pos: {
+          x: cx + Math.cos(sa) * clusterR,
+          y: (Math.random() - 0.5) * 7,
+          z: cz + Math.sin(sa) * clusterR,
+        },
+        size: cat === 'about' ? 3 : cat === 'portfolio' ? 2.2 : 1.6,
+      });
+    });
+  }
+});
+
+// Compute year-based brightness factor for experience and education nodes
+// yearFactor: 0 = oldest (darkest), 1 = newest (lightest)
+(function() {
+  const applicable = NL.filter(d => d.category === 'experience' || d.category === 'education');
+  let minY = Infinity, maxY = -Infinity;
+  applicable.forEach(d => {
+    const y = getStartYear(d, d.category);
+    d._startYear = y;
+    if (y !== null) { minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
+  });
+  applicable.forEach(d => {
+    d.yearFactor = (d._startYear !== null && minY !== maxY)
+      ? (d._startYear - minY) / (maxY - minY)
+      : 1;
+  });
+})();
+
+// ════════════════════════════════════════════════════════
+//  THREE.JS
+// ════════════════════════════════════════════════════════
+let scene, cam, ren;
+let meshes = [], glows = [], lines = [], labels = [];
+let activeF = 'all';
+let hov = null, sel = null;
+let flyA = null;
+let snHideTimer = null;
+
+// Orbit state (fully manual — no CDN addon dependency)
+const orbit = { theta: 0, phi: 0.45, dist: 130, tx: 0, ty: 0, tz: 0 };
+let isDrag = false, dragBtn = -1, px = 0, py = 0;
+
+const rc = new THREE.Raycaster();
+const mp = new THREE.Vector2(9999, 9999);
+
+function camFromOrbit() {
+  cam.position.x = orbit.tx + orbit.dist * Math.sin(orbit.phi) * Math.sin(orbit.theta);
+  cam.position.y = orbit.ty + orbit.dist * Math.cos(orbit.phi);
+  cam.position.z = orbit.tz + orbit.dist * Math.sin(orbit.phi) * Math.cos(orbit.theta);
+  cam.lookAt(orbit.tx, orbit.ty, orbit.tz);
+}
+
+// ════════════════════════════════════════════════════════
+//  BUBBLE MATERIAL FACTORY
+// ════════════════════════════════════════════════════════
+function createBubbleMaterial(size) {
+  return new THREE.ShaderMaterial({
+    vertexShader:   SOAP_VERT,
+    fragmentShader: SOAP_FRAG,
+    uniforms: {
+      uTime:           { value: 0 },
+      uFilmIOR:        { value: 1.33 },
+      uThicknessBase:  { value: 350.0 },
+      uThicknessRange: { value: 250.0 },
+      uDisplaceAmp:    { value: size * 0.08 },
+      uDisplaceSpeed:  { value: 1.5 },
+      uBrightness:     { value: 1.0 },
+    },
+    transparent: true,
+    depthWrite:  false,
+    side:        THREE.DoubleSide,
+    blending:    THREE.NormalBlending,
+  });
+}
+
+function boot() {
+  try {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x06060b);
+    scene.fog = new THREE.FogExp2(0x06060b, 0.003);
+
+    cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.5, 600);
+    camFromOrbit();
+
+    ren = new THREE.WebGLRenderer({ antialias: true });
+    ren.setSize(innerWidth, innerHeight);
+    ren.setPixelRatio(Math.min(devicePixelRatio, 2));
+    document.getElementById('scene-container').appendChild(ren.domElement);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0x1a1a2e, 1.2));
+    const dl = new THREE.DirectionalLight(0xffffff, 0.55);
+    dl.position.set(40, 60, 30);
+    scene.add(dl);
+    const fl = new THREE.DirectionalLight(0x6644aa, 0.2);
+    fl.position.set(-30, -10, -40);
+    scene.add(fl);
+
+    buildStars();
+    buildNodes();
+    buildLines();
+    buildLabels();
+    bindEvents();
+
+    setTimeout(() => document.getElementById('loader').classList.add('hidden'), 900);
+    tick();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('loader').innerHTML =
+      '<p style="color:#e05577;padding:2rem;text-align:center;font-size:0.85rem">Error: ' + err.message + '</p>';
+  }
+}
+
+function createStarTexture() {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const center = size / 2;
+  const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+  gradient.addColorStop(0,    'rgba(255, 255, 255, 1)');
+  gradient.addColorStop(0.15, 'rgba(255, 255, 255, 0.7)');
+  gradient.addColorStop(0.4,  'rgba(255, 255, 255, 0.15)');
+  gradient.addColorStop(1,    'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createStarLayer({ count, spread, size, minOpacity, maxOpacity, texture }) {
+  const positions = new Float32Array(count * 3);
+  const colors    = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    positions[i * 3]     = (Math.random() - 0.5) * spread;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * spread;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * spread;
+    const brightness = minOpacity + Math.random() * (maxOpacity - minOpacity);
+    const warmth = 0.97 + Math.random() * 0.06;
+    colors[i * 3]     = brightness * warmth;
+    colors[i * 3 + 1] = brightness;
+    colors[i * 3 + 2] = brightness * (2.0 - warmth);
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+  const material = new THREE.PointsMaterial({
+    size, map: texture, transparent: true, depthWrite: false,
+    blending: THREE.AdditiveBlending, sizeAttenuation: true, vertexColors: true,
+  });
+  scene.add(new THREE.Points(geometry, material));
+}
+
+function buildStars() {
+  const starTexture = createStarTexture();
+  createStarLayer({ count: 4000, spread: 600, size: 0.7,  minOpacity: 0.5,  maxOpacity: 0.85, texture: starTexture });
+  createStarLayer({ count:  800, spread: 600, size: 1.4,  minOpacity: 0.75, maxOpacity: 1.0,  texture: starTexture });
+}
+
+function buildNodes() {
+  // Create a glow texture
+  const gc = document.createElement('canvas');
+  gc.width = 128; gc.height = 128;
+  const gx = gc.getContext('2d');
+  const gr = gx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,0.45)');
+  gr.addColorStop(0.25, 'rgba(255,255,255,0.1)');
+  gr.addColorStop(1, 'rgba(255,255,255,0)');
+  gx.fillStyle = gr; gx.fillRect(0, 0, 128, 128);
+  const gt = new THREE.CanvasTexture(gc);
+
+  NL.forEach((d, i) => {
+    const c = new THREE.Color(CC[d.category].i);
+
+    // For experience/education, scale brightness by age (yearFactor: 0=oldest/darkest, 1=newest/lightest)
+    const yf = (d.yearFactor !== undefined) ? d.yearFactor : 1;
+    const colorScalar  = 0.14 + yf * 0.36; // 0.14 (oldest) → 0.50 (newest)
+    const emissiveInt  = 0.07 + yf * 0.33; // 0.07 (oldest) → 0.40 (newest)
+    const glowOpacity  = 0.05 + yf * 0.17; // 0.05 (oldest) → 0.22 (newest)
+    const plIntensity  = 0.10 + yf * 0.35; // 0.10 (oldest) → 0.45 (newest)
+
+    const geo = new THREE.SphereGeometry(d.size, 48, 48);
+    const baseBrightness = 0.55 + yf * 0.45; // older orbs slightly dimmer overall
+    const mat = new THREE.ShaderMaterial({
+      vertexShader:   BUBBLE_VERT,
+      fragmentShader: BUBBLE_FRAG,
+      uniforms: {
+        uTime:            { value: 0 },
+        uColor:           { value: new THREE.Vector3(c.r, c.g, c.b) },
+        uFresnelPower:    { value: 3.0 },
+        uIridesFreq:      { value: 4.0 },
+        uIridesIntensity: { value: 0.38 },
+        uSpecPower:       { value: 128.0 },
+        uGlowIntensity:   { value: 0.25 },
+        uDisplaceAmp:     { value: 0.08 },
+        uDisplaceSpeed:   { value: 1.5 },
+        uBrightness:      { value: baseBrightness },
+        uSelected:        { value: 0.0 },
+      },
+      transparent: true,
+      depthWrite:  false,
+      side:        THREE.DoubleSide,
+      blending:    THREE.NormalBlending,
+    });
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(d.pos.x, d.pos.y, d.pos.z);
+    m.userData = { ...d, idx: i, origPos: new THREE.Vector3(d.pos.x, d.pos.y, d.pos.z), baseBrightness };
+    // Store originals and precompute the soap-bubble swaps for the selected state
+    m.userData.originalMat = mat;
+    m.userData.originalGeo = geo;
+    m.userData.bubbleGeo   = new THREE.SphereGeometry(d.size, 64, 64);
+    m.userData.bubbleMat   = createBubbleMaterial(d.size);
+    scene.add(m);
+    meshes.push(m);
+
+    // Glow sprite — subtler now that the shader provides its own rim light
+    const baseGlowOp = Math.max(0.03, glowOpacity * 0.55);
+    const sm = new THREE.SpriteMaterial({ map: gt, color: CC[d.category].i, transparent: true, opacity: baseGlowOp, depthWrite: false, blending: THREE.AdditiveBlending });
+    const sp = new THREE.Sprite(sm);
+    sp.scale.setScalar(d.size * 5);
+    sp.position.copy(m.position);
+    sp.userData = { ni: i, baseOp: baseGlowOp };
+    scene.add(sp);
+    glows.push(sp);
+
+    // Point light
+    const pl = new THREE.PointLight(CC[d.category].i, plIntensity, d.size * 10);
+    pl.position.copy(m.position);
+    m.userData.pl = pl;
+    scene.add(pl);
+  });
+}
+
+function buildLines() {
+  CATS.forEach(cat => {
+    // Only draw chronological lines for categories that have year data
+    if (cat !== 'experience' && cat !== 'education') return;
+
+    const cm = meshes.filter(m => m.userData.category === cat);
+
+    // Filter to only orbs that have a valid start year, then sort oldest → newest
+    const sorted = cm
+      .filter(m => m.userData._startYear != null)
+      .sort((a, b) => a.userData._startYear - b.userData._startYear);
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const g = new THREE.BufferGeometry().setFromPoints([sorted[i].position.clone(), sorted[i + 1].position.clone()]);
+      const l = new THREE.Line(g, new THREE.LineBasicMaterial({ color: CC[cat].i, transparent: true, opacity: 0.18, depthWrite: false }));
+      l.userData = { category: cat, chronological: true, fromIdx: sorted[i].userData.idx, toIdx: sorted[i + 1].userData.idx };
+      scene.add(l); lines.push(l);
+    }
+  });
+}
+
+function buildLabels() {
+  CATS.forEach(cat => {
+    const { cx, cz, labelY } = CAT_CENTERS[cat];
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 80;
+    const x = c.getContext('2d');
+    x.font = '600 30px Outfit, sans-serif';
+    x.fillStyle = CC[cat].hex; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.globalAlpha = 0.5;
+    x.fillText(cat.charAt(0).toUpperCase() + cat.slice(1), 256, 40);
+    const t = new THREE.CanvasTexture(c);
+    const sm = new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false });
+    const s = new THREE.Sprite(sm);
+    s.position.set(cx, labelY, cz);
+    s.scale.set(22, 3.5, 1);
+    s.userData = { isLabel: true, category: cat };
+    scene.add(s); labels.push(s);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  EVENTS
+// ════════════════════════════════════════════════════════
+function bindEvents() {
+  const el = ren.domElement;
+
+  // Orbit drag
+  el.addEventListener('pointerdown', e => {
+    isDrag = true; dragBtn = e.button; px = e.clientX; py = e.clientY;
+    el.setPointerCapture(e.pointerId);
+  });
+  window.addEventListener('pointerup', () => { isDrag = false; });
+  el.addEventListener('pointermove', e => {
+    // Update mouse for raycasting
+    mp.x = (e.clientX / innerWidth) * 2 - 1;
+    mp.y = -(e.clientY / innerHeight) * 2 + 1;
+
+    if (isDrag && flyA === null) {
+      const dx = e.clientX - px;
+      const dy = e.clientY - py;
+      if (dragBtn === 0) { // Left: rotate
+        orbit.theta -= dx * 0.005;
+        orbit.phi = Math.max(0.15, Math.min(Math.PI - 0.15, orbit.phi + dy * 0.005));
+      } else if (dragBtn === 2) { // Right: pan
+        const panSpeed = orbit.dist * 0.002;
+        const right = new THREE.Vector3();
+        cam.getWorldDirection(right);
+        const up = new THREE.Vector3(0, 1, 0);
+        right.cross(up).normalize();
+        orbit.tx -= right.x * dx * panSpeed;
+        orbit.tz -= right.z * dx * panSpeed;
+        orbit.ty += dy * panSpeed;
+      }
+      px = e.clientX; py = e.clientY;
+      camFromOrbit();
+    }
+
+    // Hover tooltip
+    updateHover(e);
+  });
+  el.addEventListener('wheel', e => {
+    if (flyA) return;
+    orbit.dist = Math.max(8, Math.min(220, orbit.dist + e.deltaY * 0.06));
+    camFromOrbit();
+  }, { passive: true });
+  el.addEventListener('contextmenu', e => e.preventDefault());
+
+  el.addEventListener('click', onNodeClick);
+
+  // UI
+  document.getElementById('p-close').addEventListener('click', closePanel);
+  document.querySelectorAll('.fbtn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    activeF = b.dataset.c;
+    applyFilter();
+  }));
+
+  // Dropdown hover — show list under the hovered category button
+  const snEl = document.getElementById('sidenav');
+  document.querySelectorAll('.fbtn').forEach(b => {
+    if (b.dataset.c === 'all') return;
+    b.addEventListener('mouseenter', () => {
+      clearTimeout(snHideTimer);
+      buildSideNav(b.dataset.c, b);
+    });
+    b.addEventListener('mouseleave', () => { snHideTimer = setTimeout(hideSideNav, 180); });
+  });
+  snEl.addEventListener('mouseenter', () => clearTimeout(snHideTimer));
+  snEl.addEventListener('mouseleave', () => { snHideTimer = setTimeout(hideSideNav, 180); });
+  document.getElementById('nav-home').addEventListener('click', flyHome);
+  document.getElementById('nav-zin').addEventListener('click', () => {
+    orbit.dist = Math.max(8, orbit.dist - 15);
+    camFromOrbit();
+  });
+  document.getElementById('nav-zout').addEventListener('click', () => {
+    orbit.dist = Math.min(220, orbit.dist + 15);
+    camFromOrbit();
+  });
+  window.addEventListener('resize', () => {
+    cam.aspect = innerWidth / innerHeight;
+    cam.updateProjectionMatrix();
+    ren.setSize(innerWidth, innerHeight);
+  });
+}
+
+function updateHover(e) {
+  rc.setFromCamera(mp, cam);
+  const hits = rc.intersectObjects(meshes.filter(m => m.visible));
+  const tip = document.getElementById('tip');
+
+  if (hits.length) {
+    const o = hits[0].object;
+    if (hov !== o) {
+      if (hov && hov !== sel && hov.material.uniforms && hov.material.uniforms.uBrightness)
+        hov.material.uniforms.uBrightness.value = hov.userData.baseBrightness;
+      hov = o;
+      if (o.material.uniforms && o.material.uniforms.uBrightness)
+        o.material.uniforms.uBrightness.value = Math.min(o.userData.baseBrightness * 1.6, 1.8);
+      ren.domElement.style.cursor = 'pointer';
+    }
+    tip.textContent = o.userData.title;
+    tip.classList.add('vis');
+    tip.style.left = (e.clientX + 16) + 'px';
+    tip.style.top = (e.clientY - 12) + 'px';
+  } else {
+    if (hov && hov !== sel && hov.material.uniforms && hov.material.uniforms.uBrightness)
+      hov.material.uniforms.uBrightness.value = hov.userData.baseBrightness;
+    hov = null;
+    ren.domElement.style.cursor = 'grab';
+    tip.classList.remove('vis');
+  }
+}
+
+function onNodeClick() {
+  rc.setFromCamera(mp, cam);
+  const hits = rc.intersectObjects(meshes.filter(m => m.visible));
+  if (!hits.length) return;
+  selectMesh(hits[0].object);
+}
+
+// Returns sorted {prev, next} meshes in the same category as the given mesh.
+// experience/education: sorted chronologically, no wrap (bounded by timeline).
+// all other categories: sorted by scene index, wraps continuously (last → first, first → last).
+function getAdjacentMeshes(mesh) {
+  const cat = mesh.userData.category;
+  const pool = meshes.filter(m => m.userData.category === cat);
+  const isChronological = cat === 'experience' || cat === 'education';
+  const sorted = isChronological
+    ? pool.slice().sort((a, b) => (a.userData._startYear || 0) - (b.userData._startYear || 0))
+    : pool.slice().sort((a, b) => a.userData.idx - b.userData.idx);
+  const i = sorted.indexOf(mesh);
+  const n = sorted.length;
+  if (isChronological) {
+    return { prev: i > 0 ? sorted[i - 1] : null, next: i < n - 1 ? sorted[i + 1] : null, pos: i, total: n };
+  } else {
+    return { prev: sorted[(i - 1 + n) % n], next: sorted[(i + 1) % n], pos: i, total: n };
+  }
+}
+
+// Select an orb: highlight it, fly the camera so the next orb is in view, open the panel.
+function selectMesh(o) {
+  sel = o;
+
+  // Pass 1: restore any mesh currently wearing the bubble material
+  meshes.forEach(m => {
+    if (m.material === m.userData.bubbleMat) {
+      m.geometry = m.userData.originalGeo;
+      m.material = m.userData.originalMat;
+    }
+  });
+
+  // Pass 2: dim non-selected via existing shader uniforms; swap selected to bubble
+  meshes.forEach(m => {
+    const isSel = m === o;
+    if (isSel) {
+      m.geometry = m.userData.bubbleGeo;
+      m.material = m.userData.bubbleMat;
+      m.userData.bubbleMat.uniforms.uBrightness.value = 1.0;
+    } else {
+      if (m.material.uniforms && m.material.uniforms.uBrightness)
+        m.material.uniforms.uBrightness.value = m.userData.baseBrightness * 0.35;
+      if (m.material.uniforms && m.material.uniforms.uSelected)
+        m.material.uniforms.uSelected.value = 0.0;
+    }
+  });
+  glows.forEach(s => { s.material.opacity = meshes[s.userData.ni] === o ? s.userData.baseOp * 1.8 : s.userData.baseOp * 0.28; });
+
+  const { prev, next, pos, total } = getAdjacentMeshes(o);
+  const ref = next || prev; // prefer facing toward next; use prev for the last node
+
+  let camPos;
+  if (ref && total > 1) {
+    // Direction from current orb toward the reference neighbour
+    const toRef = ref.position.clone().sub(o.position).normalize();
+    const up    = new THREE.Vector3(0, 1, 0);
+    const right = new THREE.Vector3().crossVectors(toRef, up).normalize();
+    // Sit behind the current orb (away from ref) so ref is naturally in the viewport
+    camPos = o.position.clone()
+      .addScaledVector(toRef, -14)
+      .addScaledVector(up, 5)
+      .addScaledVector(right, 5);
+  } else {
+    // Solo orb — pull camera back further so it isn't uncomfortably close
+    camPos = o.position.clone().add(new THREE.Vector3(8, 10, 32));
+  }
+
+  flyTo(camPos, o.position.clone());
+  showPanel(o.userData, prev, next, pos, total);
+  updateSideNavActive(o.userData.idx);
+}
+
+// ════════════════════════════════════════════════════════
+//  PANEL
+// ════════════════════════════════════════════════════════
+function showPanel(d, prev, next, pos, total) {
+  const cc = CC[d.category].hex;
+  document.getElementById('p-cat').textContent = d.category;
+  document.getElementById('p-cat').style.color = cc;
+  document.getElementById('p-title').textContent = d.title;
+  document.getElementById('p-sub').textContent = d.subtitle || '';
+  document.getElementById('p-sub').style.color = cc;
+
+  let h = '';
+  if (d.image) h += '<img class="pimg" src="' + d.image + '" alt="' + d.title + '">';
+  if (d.video) h += '<video class="pvid" src="' + d.video + '" controls playsinline></video>';
+  if (d.desc) h += '<p class="pdesc">' + d.desc.replace(/\n/g, '<br>') + '</p>';
+  if (d.meta) {
+    h += '<div class="pdiv"></div><div class="plbl">Details</div><div class="pmeta">';
+    for (const [k, v] of Object.entries(d.meta)) h += '<div class="mval"><div class="ml">' + k + '</div>' + v + '</div>';
+    h += '</div>';
+  }
+  if (d.tags && d.tags.length) {
+    h += '<div class="pdiv"></div><div class="plbl">Skills & Technologies</div><div class="ptags">';
+    d.tags.forEach(t => h += '<span class="ptag">' + t + '</span>');
+    h += '</div>';
+  }
+  if (d.links && d.links.length) {
+    h += '<div class="pdiv"></div><div class="plbl">Links</div><div class="plinks">';
+    d.links.forEach(l => h += '<a class="plnk" href="' + l.url + '" target="_blank" rel="noopener" style="color:' + cc + '">' + l.label + '</a>');
+    h += '</div>';
+  }
+  document.getElementById('p-body').innerHTML = h;
+  document.getElementById('p-body').scrollTop = 0;
+
+  // Nav footer
+  const navEl = document.getElementById('p-nav');
+  const posLabel = (pos !== undefined && total !== undefined) ? (pos + 1) + ' / ' + total : '';
+  navEl.innerHTML =
+    '<button class="pnavbtn" id="p-prev"' + (prev ? '' : ' disabled') + '>\u2190 Prev</button>' +
+    '<span class="pnavpos" style="color:' + cc + '">' + posLabel + '</span>' +
+    '<button class="pnavbtn" id="p-next"' + (next ? '' : ' disabled') + '>Next \u2192</button>';
+  if (prev) document.getElementById('p-prev').addEventListener('click', () => selectMesh(prev));
+  if (next) document.getElementById('p-next').addEventListener('click', () => selectMesh(next));
+
+  document.getElementById('panel').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('p-nav').innerHTML = '';
+  sel = null;
+  updateSideNavActive(-1);
+  meshes.forEach(m => {
+    if (m.material === m.userData.bubbleMat) {
+      m.geometry = m.userData.originalGeo;
+      m.material = m.userData.originalMat;
+    }
+    if (m.material.uniforms && m.material.uniforms.uBrightness)
+      m.material.uniforms.uBrightness.value = m.userData.baseBrightness;
+    if (m.material.uniforms && m.material.uniforms.uSelected)
+      m.material.uniforms.uSelected.value = 0.0;
+  });
+  glows.forEach(s => { s.material.opacity = s.userData.baseOp; });
+}
+
+// ════════════════════════════════════════════════════════
+//  SIDE NAV
+// ════════════════════════════════════════════════════════
+function buildSideNav(category, btnEl) {
+  const nav = document.getElementById('sidenav');
+  const cc  = CC[category].hex;
+
+  // Position centred under the hovered button
+  if (btnEl) {
+    const r = btnEl.getBoundingClientRect();
+    nav.style.left      = Math.round(r.left + r.width / 2) + 'px';
+    nav.style.top       = Math.round(r.bottom + 10) + 'px';
+    nav.style.transform = 'translateX(-50%)';
+  }
+
+  // Sort oldest→newest (matching getAdjacentMeshes), then reverse so newest is at top
+  const pool = meshes.filter(m => m.userData.category === category);
+  const sorted = (category === 'experience' || category === 'education')
+    ? pool.slice().sort((a, b) => (a.userData._startYear || 0) - (b.userData._startYear || 0)).reverse()
+    : pool.slice().sort((a, b) => a.userData.idx - b.userData.idx).reverse();
+
+  let h = '<div class="sn-label" style="color:' + cc + '">' +
+          category.charAt(0).toUpperCase() + category.slice(1) + '</div>';
+  sorted.forEach(m => {
+    h += '<div class="sn-item" data-idx="' + m.userData.idx + '" style="--sn-cc:' + cc + '">' +
+         m.userData.title + '</div>';
+  });
+  nav.innerHTML = h;
+  nav.classList.add('open');
+
+  nav.querySelectorAll('.sn-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const target = meshes[parseInt(el.dataset.idx)];
+      if (!target) return;
+      // If a category filter is hiding this orb, silently reset to show all
+      // (don't call applyFilter as that flies camera away and closes the panel)
+      if (!target.visible) {
+        activeF = 'all';
+        document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
+        const allBtn = document.querySelector('.fbtn[data-c="all"]');
+        if (allBtn) allBtn.classList.add('on');
+        meshes.forEach((m, i) => {
+          m.visible = true;
+          glows[i].visible = true;
+          if (m.userData.pl) m.userData.pl.visible = true;
+        });
+        lines.forEach(l => l.visible = true);
+        labels.forEach(s => s.visible = true);
+      }
+      selectMesh(target);
+      updateSideNavActive(target.userData.idx);
+    });
+  });
+}
+
+function updateSideNavActive(idx) {
+  const cc = activeF !== 'all' ? CC[activeF].hex : null;
+  document.querySelectorAll('.sn-item').forEach(el => {
+    const isActive = parseInt(el.dataset.idx) === idx;
+    el.classList.toggle('sn-active', isActive);
+    el.style.color       = isActive && cc ? cc : '';
+    el.style.borderColor = isActive && cc ? cc : '';
+  });
+}
+
+function hideSideNav() {
+  const nav = document.getElementById('sidenav');
+  nav.classList.remove('open');
+}
+
+// ════════════════════════════════════════════════════════
+//  FILTER
+// ════════════════════════════════════════════════════════
+function applyFilter() {
+  closePanel();
+  meshes.forEach((m, i) => {
+    const show = activeF === 'all' || m.userData.category === activeF;
+    m.visible = show;
+    glows[i].visible = show;
+    if (m.userData.pl) m.userData.pl.visible = show;
+  });
+  lines.forEach(l => l.visible = activeF === 'all' || l.userData.category === activeF);
+  labels.forEach(s => s.visible = activeF === 'all' || s.userData.category === activeF);
+
+  if (activeF !== 'all') {
+    const cm = meshes.filter(m => m.userData.category === activeF);
+    if (cm.length) {
+      const c = new THREE.Vector3();
+      cm.forEach(m => c.add(m.position));
+      c.divideScalar(cm.length);
+      flyTo(c.clone().add(new THREE.Vector3(0, 15, 55)), c);
+    }
+  } else {
+    flyHome();
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  CAMERA FLY
+// ════════════════════════════════════════════════════════
+function flyTo(cp, lt) {
+  flyA = { from: cam.position.clone(), to: cp, ft: new THREE.Vector3(orbit.tx, orbit.ty, orbit.tz), tt: lt, t: 0 };
+}
+
+function flyHome() {
+  flyTo(new THREE.Vector3(0, 50, 140), new THREE.Vector3(0, 0, 0));
+}
+
+function processFly() {
+  if (!flyA) return;
+  flyA.t = Math.min(flyA.t + 0.02, 1);
+  const e = 1 - Math.pow(1 - flyA.t, 3);
+  cam.position.lerpVectors(flyA.from, flyA.to, e);
+  const ct = new THREE.Vector3().lerpVectors(flyA.ft, flyA.tt, e);
+  cam.lookAt(ct);
+
+  if (flyA.t >= 1) {
+    // Sync orbit state to final position
+    orbit.tx = flyA.tt.x; orbit.ty = flyA.tt.y; orbit.tz = flyA.tt.z;
+    const dx = cam.position.x - orbit.tx;
+    const dy = cam.position.y - orbit.ty;
+    const dz = cam.position.z - orbit.tz;
+    orbit.dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    orbit.phi = Math.acos(Math.max(-1, Math.min(1, dy / orbit.dist)));
+    orbit.theta = Math.atan2(dx, dz);
+    flyA = null;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  RENDER LOOP
+// ════════════════════════════════════════════════════════
+function tick() {
+  requestAnimationFrame(tick);
+  const t = performance.now() * 0.001;
+
+  processFly();
+  if (!flyA) camFromOrbit();
+
+  // Animate nodes
+  meshes.forEach((m, i) => {
+    if (!m.visible) return;
+    const op = m.userData.origPos;
+    const sp = 0.1 + (i % 5) * 0.025;
+    const of = i * 2.3;
+
+    m.position.x = op.x + Math.sin(t * sp + of) * 1.0;
+    m.position.y = op.y + Math.cos(t * sp * 0.6 + of) * 0.8;
+    m.position.z = op.z + Math.sin(t * sp * 0.35 + of * 0.4) * 0.6;
+
+    const pu = 1 + Math.sin(t * 0.6 + of) * 0.025;
+    m.scale.setScalar(pu);
+    if (m.material.uniforms && m.material.uniforms.uTime)
+      m.material.uniforms.uTime.value = t;
+
+    glows[i].position.copy(m.position);
+    glows[i].scale.setScalar(m.userData.size * 5 * pu);
+    if (m.userData.pl) m.userData.pl.position.copy(m.position);
+  });
+
+  // Update chronological experience line endpoints to track floating orbs
+  lines.forEach(l => {
+    if (!l.userData.chronological) return;
+    const mA = meshes[l.userData.fromIdx];
+    const mB = meshes[l.userData.toIdx];
+    if (!mA || !mB) return;
+    const pos = l.geometry.attributes.position;
+    pos.setXYZ(0, mA.position.x, mA.position.y, mA.position.z);
+    pos.setXYZ(1, mB.position.x, mB.position.y, mB.position.z);
+    pos.needsUpdate = true;
+  });
+
+  ren.render(scene, cam);
+}
+
+// ════════════════════════════════════════════════════════
+//  START
+// ════════════════════════════════════════════════════════
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+</script>
+</body>
+</html>
