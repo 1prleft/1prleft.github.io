@@ -91,6 +91,7 @@ canvas { display: block; touch-action: none; }
   border: 1px solid var(--border); background: rgba(255,255,255,0.02);
   color: var(--text-muted); transition: all 0.25s ease;
   backdrop-filter: blur(10px);
+  touch-action: manipulation;
 }
 .fbtn:hover { border-color: var(--border-hover); color: var(--text); }
 .fbtn.on { background: rgba(255,255,255,0.06); color: var(--text-bright); border-color: rgba(255,255,255,0.15); }
@@ -133,6 +134,7 @@ canvas { display: block; touch-action: none; }
   color: var(--text-muted); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   font-size: 0.9rem; transition: all 0.2s; flex-shrink: 0;
+  touch-action: manipulation;
 }
 .pclose:hover { background: rgba(255,255,255,0.04); color: var(--text-bright); }
 .pcat {
@@ -149,6 +151,7 @@ canvas { display: block; touch-action: none; }
 .pbody {
   padding: 1.6rem 2rem 2.5rem;
   overflow-y: auto; flex: 1;
+  touch-action: pan-y;
 }
 .pbody::-webkit-scrollbar { width: 3px; }
 .pbody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
@@ -197,6 +200,7 @@ canvas { display: block; touch-action: none; }
   backdrop-filter: blur(10px); color: var(--text-muted);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   font-size: 1rem; transition: all 0.2s;
+  touch-action: manipulation;
 }
 .nbtn:hover { background: rgba(255,255,255,0.06); color: var(--text-bright); }
 .hint {
@@ -217,6 +221,7 @@ canvas { display: block; touch-action: none; }
   font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.1em;
   text-transform: uppercase; padding: 7px 15px; border-radius: 100px;
   border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+  touch-action: manipulation;
   color: var(--text-muted); cursor: pointer; transition: all 0.2s;
   display: flex; align-items: center; gap: 5px;
 }
@@ -1115,15 +1120,20 @@ function buildLabels() {
 //  EVENTS
 // ════════════════════════════════════════════════════════
 function bindEvents() {
-  // Prevent browser-native page zoom on iOS (gesturestart/change) and
-  // block double-tap zoom by swallowing rapid successive touchend events
+  // Prevent browser-native page zoom on iOS.
+  // gesturestart/change covers pinch-zoom at the OS level.
+  // The double-tap guard must intercept touchstart (not touchend) because
+  // iOS Safari queues the zoom action before touchend ever fires.
   document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
   document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
-  let lastTap = 0;
-  document.addEventListener('touchend', e => {
+  document.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
+  let lastTapTime = 0;
+  document.addEventListener('touchstart', e => {
     const now = Date.now();
-    if (now - lastTap < 300) e.preventDefault();
-    lastTap = now;
+    if (now - lastTapTime < 350) {
+      e.preventDefault(); // kills the double-tap zoom before iOS acts on it
+    }
+    lastTapTime = now;
   }, { passive: false });
 
   const el = ren.domElement;
@@ -1309,7 +1319,20 @@ function onNodeClick() {
   const hits = rc.intersectObjects(targets);
   if (!hits.length) return;
   const hitIdx = hits[0].object.userData.idx;
-  selectMesh(meshes[hitIdx]);
+  const target = meshes[hitIdx];
+
+  // If the tapped orb belongs to a different (filtered-out) category, switch the filter
+  // to match it so the panel and surrounding context make sense — no camera fly, just
+  // update the button state and brightness so selectMesh() takes over navigation.
+  if (activeF !== 'all' && target.userData.category !== activeF) {
+    activeF = target.userData.category;
+    document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
+    const btn = document.querySelector('.fbtn[data-c="' + activeF + '"]');
+    if (btn) btn.classList.add('on');
+    refreshVisibility(); // re-dim without flying away
+  }
+
+  selectMesh(target);
 }
 
 // Returns sorted {prev, next} meshes in the same category as the given mesh.
@@ -1347,13 +1370,17 @@ function selectMesh(o) {
   // Pass 2: dim non-selected via existing shader uniforms; swap selected to bubble
   meshes.forEach(m => {
     const isSel = m === o;
+    const isActive = activeF === 'all' || m.userData.category === activeF;
     if (isSel) {
       m.geometry = m.userData.bubbleGeo;
       m.material = m.userData.bubbleMat;
       m.userData.bubbleMat.uniforms.uBrightness.value = 1.0;
     } else {
       if (m.material.uniforms && m.material.uniforms.uBrightness)
-        m.material.uniforms.uBrightness.value = m.userData.baseBrightness * 0.35;
+        // Active-category peers: moderately dimmed; background-category orbs: very dim but visible
+        m.material.uniforms.uBrightness.value = isActive
+          ? m.userData.baseBrightness * 0.35
+          : m.userData.baseBrightness * 0.10;
       if (m.material.uniforms && m.material.uniforms.uSelected)
         m.material.uniforms.uSelected.value = 0.0;
     }
@@ -1440,12 +1467,12 @@ function closePanel() {
       m.geometry = m.userData.originalGeo;
       m.material = m.userData.originalMat;
     }
-    if (m.material.uniforms && m.material.uniforms.uBrightness)
-      m.material.uniforms.uBrightness.value = m.userData.baseBrightness;
     if (m.material.uniforms && m.material.uniforms.uSelected)
       m.material.uniforms.uSelected.value = 0.0;
   });
   glows.forEach(s => { s.material.opacity = s.userData.baseOp; });
+  // Restore filter-aware brightness (active = full, inactive = dimmed)
+  refreshVisibility();
 }
 
 // ════════════════════════════════════════════════════════
@@ -1520,19 +1547,33 @@ function hideSideNav() {
 }
 
 // ════════════════════════════════════════════════════════
+//  VISIBILITY / BRIGHTNESS — shared helper
+// ════════════════════════════════════════════════════════
+// Keeps all orbs rendered but dims orbs outside the active filter.
+// Call whenever the filter changes or a panel closes.
+function refreshVisibility() {
+  meshes.forEach((m, i) => {
+    const isActive = activeF === 'all' || m.userData.category === activeF;
+    m.visible = true;
+    glows[i].visible = true;
+    if (m.userData.pl) m.userData.pl.visible = isActive;
+    if (hitMeshes[i]) hitMeshes[i].visible = true;
+    if (m.material.uniforms && m.material.uniforms.uBrightness) {
+      m.material.uniforms.uBrightness.value = isActive
+        ? m.userData.baseBrightness
+        : m.userData.baseBrightness * 0.15;
+    }
+  });
+  lines.forEach(l => l.visible = activeF === 'all' || l.userData.category === activeF);
+  labels.forEach(s => s.visible = activeF === 'all' || s.userData.category === activeF);
+}
+
+// ════════════════════════════════════════════════════════
 //  FILTER
 // ════════════════════════════════════════════════════════
 function applyFilter() {
   closePanel();
-  meshes.forEach((m, i) => {
-    const show = activeF === 'all' || m.userData.category === activeF;
-    m.visible = show;
-    glows[i].visible = show;
-    if (m.userData.pl) m.userData.pl.visible = show;
-    if (hitMeshes[i]) hitMeshes[i].visible = show;
-  });
-  lines.forEach(l => l.visible = activeF === 'all' || l.userData.category === activeF);
-  labels.forEach(s => s.visible = activeF === 'all' || s.userData.category === activeF);
+  refreshVisibility();
 
   if (activeF !== 'all') {
     const cm = meshes.filter(m => m.userData.category === activeF);
