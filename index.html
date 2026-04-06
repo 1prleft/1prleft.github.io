@@ -281,19 +281,24 @@ canvas { display: block; touch-action: none; }
     bottom: 4.5rem;
     left: 0;
     right: 0;
-    padding: 0 0.75rem;
+    padding: 0 0.5rem;
     transform: none;
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    gap: 4px;
+    gap: 3px;
   }
   #filters::-webkit-scrollbar { display: none; }
   .fbtn {
-    padding: 5px 10px;
-    font-size: 0.6rem;
-    flex-shrink: 0;
+    /* clamp scales font with viewport: fits all 6 buttons at ~390px, scrolls only below ~340px */
+    font-size: clamp(0.44rem, 1.85vw, 0.6rem);
+    padding: 5px clamp(5px, 1.8vw, 10px);
+    letter-spacing: 0.02em;
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .ph { padding: 1.2rem 1rem 0; }
