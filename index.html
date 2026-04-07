@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>WHO is this guy, PHIL?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600&family=Crimson+Pro:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -115,7 +115,7 @@ canvas { display: block; touch-action: none; }
 /* DETAIL PANEL */
 #panel {
   position: fixed; top: 0; right: 0; bottom: 0;
-  width: 555px; max-width: 94vw; z-index: 20;
+  width:35%; min-width: 333px; max-width: 94vw; z-index: 20;
   background: var(--surface); border-left: 1px solid var(--border);
   backdrop-filter: blur(40px) saturate(1.3);
   transform: translateX(105%);
@@ -229,7 +229,7 @@ canvas { display: block; touch-action: none; }
 .pnavbtn:disabled { opacity: 0.22; cursor: default; }
 .pnavpos { font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.08em; }
 
-/* SIDE NAV — dropdown anchored under hovered filter button */
+/* SIDE NAV */
 #sidenav {
   position: fixed; z-index: 25;
   max-height: 55vh; overflow-y: auto; overflow-x: hidden;
@@ -261,6 +261,73 @@ canvas { display: block; touch-action: none; }
 .sn-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
 .sn-item.sn-active { font-weight: 500; }
 
+/* ═══════════════════════════════════════════
+   SETTINGS PANEL (hidden customizer)
+   ═══════════════════════════════════════════ */
+#settings-toggle {
+  position: fixed; bottom: 1.25rem; right: 2rem; z-index: 30;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(10px); color: var(--text-muted);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; transition: all 0.3s ease;
+  opacity: 0.4;
+}
+#settings-toggle:hover { opacity: 1; background: rgba(255,255,255,0.06); color: var(--text-bright); border-color: var(--border-hover); }
+#settings-toggle.active { opacity: 1; color: var(--text-bright); transform: rotate(60deg); }
+
+#settings-panel {
+  position: fixed; bottom: 4.5rem; right: 2rem; z-index: 29;
+  width: 260px; padding: 1.2rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; backdrop-filter: blur(40px) saturate(1.3);
+  opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.96);
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#settings-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+
+.settings-section { margin-bottom: 1rem; }
+.settings-section:last-child { margin-bottom: 0; }
+.settings-label {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;
+  font-weight: 500; display: block;
+}
+
+.palette-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+}
+.palette-swatch {
+  height: 36px; border-radius: 6px; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative;
+}
+.palette-swatch:hover { border-color: rgba(255,255,255,0.2); transform: scale(1.05); }
+.palette-swatch.active { border-color: var(--text-bright); }
+.palette-swatch .ps-colors {
+  display: flex; width: 100%; height: 100%;
+}
+.palette-swatch .ps-colors span { flex: 1; }
+.palette-name {
+  position: absolute; bottom: 1px; left: 0; right: 0; text-align: center;
+  font-size: 0.42rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.8); text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  font-family: var(--mono); font-weight: 500;
+}
+
+.font-list {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.font-option {
+  padding: 6px 10px; border-radius: 6px; cursor: pointer;
+  font-size: 0.72rem; color: var(--text-muted);
+  border: 1px solid transparent; transition: all 0.2s;
+  background: rgba(255,255,255,0.01);
+}
+.font-option:hover { color: var(--text); background: rgba(255,255,255,0.03); border-color: var(--border); }
+.font-option.active { color: var(--text-bright); border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); }
+
 @media (max-width: 640px) {
   #panel { width: 100vw; max-width: 100vw; }
   #filters { top: auto; bottom: 5rem; left: 0.75rem; right: 0.75rem; transform: none; }
@@ -291,7 +358,6 @@ canvas { display: block; touch-action: none; }
   }
   #filters::-webkit-scrollbar { display: none; }
   .fbtn {
-    /* clamp scales font with viewport: fits all 6 buttons at ~390px, scrolls only below ~340px */
     font-size: clamp(0.44rem, 1.85vw, 0.6rem);
     padding: 5px clamp(5px, 1.8vw, 10px);
     letter-spacing: 0.02em;
@@ -313,6 +379,9 @@ canvas { display: block; touch-action: none; }
 
   #topbar { padding-top: max(0.8rem, env(safe-area-inset-top)); }
   #bbar { padding-bottom: max(0.6rem, env(safe-area-inset-bottom)); }
+
+  #settings-toggle { bottom: 0.6rem; right: 1rem; }
+  #settings-panel { bottom: 3.5rem; right: 1rem; width: 230px; }
 }
 </style>
 </head>
@@ -338,7 +407,6 @@ canvas { display: block; touch-action: none; }
   <button class="fbtn" data-c="experience">Experience</button>
   <button class="fbtn" data-c="portfolio">Portfolio</button>
   <button class="fbtn" data-c="skills">Skills</button>
- 
 </div>
 
 <div id="panel">
@@ -365,10 +433,186 @@ canvas { display: block; touch-action: none; }
   <div class="hint">Click nodes to explore &middot; Drag to orbit &middot; Scroll to zoom</div>
 </div>
 
+<!-- Settings gear (tucked away) -->
+<button id="settings-toggle" title="Appearance">&#9881;</button>
+<div id="settings-panel">
+  <div class="settings-section">
+    <span class="settings-label">Color Palette</span>
+    <div class="palette-grid" id="palette-grid"></div>
+  </div>
+  <div class="settings-section">
+    <span class="settings-label">Display Font</span>
+    <div class="font-list" id="font-list"></div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ════════════════════════════════════════════════════════
-//  BUBBLE SHADER  (GLSL ES 1.0 — Three.js r128 / WebGL1)
+//  COLOR PALETTES & FONT SYSTEM
+// ════════════════════════════════════════════════════════
+const PALETTES = {
+  default: {
+    name: 'Default',
+    portfolio: '#e8764e', experience: '#a475d6', skills: '#4ab8c2',
+    education: '#5cc98e', about: '#e05577',
+    void: '#06060d', fog: 0x06060b,
+  },
+  aurora: {
+    name: 'Aurora',
+    portfolio: '#ff6b9d', experience: '#c084fc', skills: '#67e8f9',
+    education: '#86efac', about: '#fbbf24',
+    void: '#070714', fog: 0x070714,
+  },
+  ocean: {
+    name: 'Ocean',
+    portfolio: '#f97316', experience: '#6366f1', skills: '#22d3ee',
+    education: '#34d399', about: '#f472b6',
+    void: '#020617', fog: 0x020617,
+  },
+  ember: {
+    name: 'Ember',
+    portfolio: '#ef4444', experience: '#f59e0b', skills: '#06b6d4',
+    education: '#84cc16', about: '#ec4899',
+    void: '#0c0a09', fog: 0x0c0a09,
+  },
+  frost: {
+    name: 'Frost',
+    portfolio: '#94a3b8', experience: '#a78bfa', skills: '#7dd3fc',
+    education: '#86efac', about: '#fda4af',
+    void: '#0a0a12', fog: 0x0a0a12,
+  },
+  neon: {
+    name: 'Neon',
+    portfolio: '#ff3e00', experience: '#d946ef', skills: '#00ff88',
+    education: '#facc15', about: '#ff006e',
+    void: '#05050a', fog: 0x05050a,
+  },
+  earth: {
+    name: 'Earth',
+    portfolio: '#d97706', experience: '#9f7aea', skills: '#5eead4',
+    education: '#a3e635', about: '#fb923c',
+    void: '#0d0b08', fog: 0x0d0b08,
+  },
+  midnight: {
+    name: 'Midnight',
+    portfolio: '#818cf8', experience: '#c084fc', skills: '#67e8f9',
+    education: '#6ee7b7', about: '#f9a8d4',
+    void: '#030318', fog: 0x030318,
+  },
+  monochrome: {
+    name: 'Mono',
+    portfolio: '#e2e8f0', experience: '#cbd5e1', skills: '#94a3b8',
+    education: '#64748b', about: '#f1f5f9',
+    void: '#09090b', fog: 0x09090b,
+  },
+};
+
+const FONT_SETS = {
+  default: { name: 'Playfair + Outfit', display: "'Playfair Display', Georgia, serif", body: "'Outfit', system-ui, sans-serif", mono: "'IBM Plex Mono', monospace" },
+  sora: { name: 'Cormorant + Sora', display: "'Cormorant Garamond', Georgia, serif", body: "'Sora', system-ui, sans-serif", mono: "'JetBrains Mono', monospace" },
+  crimson: { name: 'Crimson + DM Sans', display: "'Crimson Pro', Georgia, serif", body: "'DM Sans', system-ui, sans-serif", mono: "'Fira Code', monospace" },
+  grotesk: { name: 'Space Grotesk', display: "'Space Grotesk', system-ui, sans-serif", body: "'Space Grotesk', system-ui, sans-serif", mono: "'JetBrains Mono', monospace" },
+};
+
+let currentPalette = 'default';
+let currentFontSet = 'default';
+
+function applyPalette(key) {
+  currentPalette = key;
+  const p = PALETTES[key];
+  const r = document.documentElement.style;
+  r.setProperty('--portfolio', p.portfolio);
+  r.setProperty('--experience', p.experience);
+  r.setProperty('--skills', p.skills);
+  r.setProperty('--education', p.education);
+  r.setProperty('--about', p.about);
+  r.setProperty('--void', p.void);
+
+  // Update Three.js scene
+  if (scene) {
+    scene.background = new THREE.Color(p.fog);
+    scene.fog = new THREE.FogExp2(p.fog, 0.003);
+  }
+
+  // Update CC lookup and rebuild orb colors
+  CC.portfolio.hex = p.portfolio;  CC.portfolio.i = parseInt(p.portfolio.slice(1), 16);
+  CC.experience.hex = p.experience; CC.experience.i = parseInt(p.experience.slice(1), 16);
+  CC.skills.hex = p.skills;       CC.skills.i = parseInt(p.skills.slice(1), 16);
+  CC.education.hex = p.education;  CC.education.i = parseInt(p.education.slice(1), 16);
+  CC.about.hex = p.about;         CC.about.i = parseInt(p.about.slice(1), 16);
+
+  // Update orb shader colors
+  meshes.forEach((m, i) => {
+    const c = new THREE.Color(CC[m.userData.category].i);
+    if (m.material.uniforms && m.material.uniforms.uColor) {
+      m.material.uniforms.uColor.value.set(c.r, c.g, c.b);
+    }
+    // Update glow sprite colors
+    if (glows[i]) glows[i].material.color.setHex(CC[m.userData.category].i);
+    // Update point light colors
+    if (m.userData.pl) m.userData.pl.color.setHex(CC[m.userData.category].i);
+  });
+
+  // Update palette swatch active states
+  document.querySelectorAll('.palette-swatch').forEach(s => {
+    s.classList.toggle('active', s.dataset.palette === key);
+  });
+}
+
+function applyFontSet(key) {
+  currentFontSet = key;
+  const f = FONT_SETS[key];
+  const r = document.documentElement.style;
+  r.setProperty('--display', f.display);
+  r.setProperty('--body', f.body);
+  r.setProperty('--mono', f.mono);
+  document.querySelectorAll('.font-option').forEach(el => {
+    el.classList.toggle('active', el.dataset.font === key);
+  });
+}
+
+function buildSettingsUI() {
+  // Palettes
+  const grid = document.getElementById('palette-grid');
+  Object.entries(PALETTES).forEach(([key, p]) => {
+    const swatch = document.createElement('div');
+    swatch.className = 'palette-swatch' + (key === currentPalette ? ' active' : '');
+    swatch.dataset.palette = key;
+    swatch.innerHTML = '<div class="ps-colors">' +
+      '<span style="background:' + p.portfolio + '"></span>' +
+      '<span style="background:' + p.experience + '"></span>' +
+      '<span style="background:' + p.skills + '"></span>' +
+      '<span style="background:' + p.education + '"></span>' +
+      '<span style="background:' + p.about + '"></span>' +
+      '</div><span class="palette-name">' + p.name + '</span>';
+    swatch.addEventListener('click', () => applyPalette(key));
+    grid.appendChild(swatch);
+  });
+
+  // Fonts
+  const fontList = document.getElementById('font-list');
+  Object.entries(FONT_SETS).forEach(([key, f]) => {
+    const opt = document.createElement('div');
+    opt.className = 'font-option' + (key === currentFontSet ? ' active' : '');
+    opt.dataset.font = key;
+    opt.style.fontFamily = f.display;
+    opt.textContent = f.name;
+    opt.addEventListener('click', () => applyFontSet(key));
+    fontList.appendChild(opt);
+  });
+
+  // Toggle
+  const toggle = document.getElementById('settings-toggle');
+  const panel = document.getElementById('settings-panel');
+  toggle.addEventListener('click', () => {
+    panel.classList.toggle('open');
+    toggle.classList.toggle('active');
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  ENHANCED BUBBLE SHADER (unselected orbs — more definition)
 // ════════════════════════════════════════════════════════
 const BUBBLE_VERT = `
   uniform float uTime;
@@ -378,19 +622,24 @@ const BUBBLE_VERT = `
   varying vec3 vNormal;
   varying vec3 vViewDir;
   varying vec3 vPosition;
+  varying vec3 vWorldPos;
 
   void main() {
     vNormal   = normalize(normalMatrix * normal);
     vec4 worldPos = modelViewMatrix * vec4(position, 1.0);
     vViewDir  = normalize(-worldPos.xyz);
     vPosition = position;
+    vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
 
     float d = 0.0;
     d += sin(position.x * 2.0  + uTime * uDisplaceSpeed * 1.2) * 0.35;
     d += sin(position.y * 3.0  + uTime * uDisplaceSpeed * 0.8) * 0.25;
     d += sin(position.z * 2.5  + uTime * uDisplaceSpeed * 1.0) * 0.20;
     d += sin((position.x + position.y) * 4.0 + uTime * uDisplaceSpeed * 1.5) * 0.20;
-    // Selected orb gets 3x displacement amplitude for dramatic wobble
+    // Higher frequency detail ripples
+    d += sin(position.x * 6.0 + position.z * 4.0 + uTime * uDisplaceSpeed * 2.0) * 0.08;
+    d += sin(position.y * 5.0 + position.x * 3.0 + uTime * uDisplaceSpeed * 0.6) * 0.06;
+
     float amp = uDisplaceAmp * mix(1.0, 3.0, uSelected);
     vec3 displaced = position + normal * d * amp;
 
@@ -412,6 +661,23 @@ const BUBBLE_FRAG = `
   varying vec3 vNormal;
   varying vec3 vViewDir;
   varying vec3 vPosition;
+  varying vec3 vWorldPos;
+
+  // Procedural noise for internal detail
+  float hash(vec3 p) {
+    p = fract(p * 0.3183099 + 0.1);
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+  }
+  float noise3d(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
+                   mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+               mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+                   mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+  }
 
   void main() {
     vec3  N = normalize(vNormal);
@@ -421,53 +687,70 @@ const BUBBLE_FRAG = `
     float NdotV  = max(dot(N, V), 0.0);
     float fresnel = pow(1.0 - NdotV, uFresnelPower);
 
+    // --- Internal structure noise (adds detail to unselected orbs) ---
+    float internalNoise = noise3d(vPosition * 3.0 + uTime * 0.15) * 0.5
+                        + noise3d(vPosition * 6.0 - uTime * 0.08) * 0.25
+                        + noise3d(vPosition * 12.0 + uTime * 0.22) * 0.12;
+    // Caustic-like internal light pattern
+    float caustic = pow(abs(sin(vPosition.x * 4.0 + vPosition.y * 3.0 + uTime * 0.3)
+                       * sin(vPosition.y * 5.0 + vPosition.z * 2.0 - uTime * 0.2)), 3.0) * 0.5;
+
     // --- Thin-film iridescence ---
-    // Normal: rainbow tinted toward category color
-    // Selected: pure rainbow — zero category color dilution
     float f = fresnel * uIridesFreq;
     vec3 irides;
     irides.r = sin(f * 6.2832 + 0.0)    * 0.5 + 0.5;
-    irides.g = sin(f * 6.2832 + 2.0944) * 0.5 + 0.5;   // +120°
-    irides.b = sin(f * 6.2832 + 4.1888) * 0.5 + 0.5;   // +240°
-    // For selected, drain warm tones out of the rainbow by mixing toward blue-white
+    irides.g = sin(f * 6.2832 + 2.0944) * 0.5 + 0.5;
+    irides.b = sin(f * 6.2832 + 4.1888) * 0.5 + 0.5;
+
     vec3 cooledIrides  = mix(irides, vec3(0.62, 0.88, 1.0), uSelected * 0.60);
     float iridesBlend  = mix(0.45, 1.0, uSelected);
     float colorMix     = mix(uIridesIntensity, 1.0, uSelected);
     vec3 tintedIrides  = mix(uColor, cooledIrides, iridesBlend);
     vec3 iridesColor   = mix(uColor, tintedIrides, colorMix);
 
-    // --- Specular (Blinn-Phong, light at 40,60,30) ---
-    vec3  L         = normalize(vec3(40.0, 60.0, 30.0));
-    vec3  H         = normalize(L + V);
-    float NdotH     = max(dot(N, H), 0.0);
-    float spec      = pow(NdotH, uSpecPower);         // tight hotspot
-    float specBroad = pow(NdotH, 10.0);               // wide chrome sheen
+    // --- Multi-light specular ---
+    vec3  L1 = normalize(vec3(40.0, 60.0, 30.0));
+    vec3  H1 = normalize(L1 + V);
+    float spec1 = pow(max(dot(N, H1), 0.0), uSpecPower);
+    // Secondary light for more definition
+    vec3  L2 = normalize(vec3(-30.0, 20.0, -40.0));
+    vec3  H2 = normalize(L2 + V);
+    float spec2 = pow(max(dot(N, H2), 0.0), uSpecPower * 0.5) * 0.3;
+    // Rim highlight from behind
+    vec3  L3 = normalize(vec3(0.0, -20.0, -50.0));
+    float rimSpec = pow(max(dot(N, normalize(L3 + V)), 0.0), 24.0) * 0.2;
 
-    // --- Interior glow ---
-    // Normal: category-tinted; selected: pure neutral white-blue soap film
+    float spec = spec1 + spec2;
+    float specBroad = pow(max(dot(N, H1), 0.0), 10.0);
+
+    // --- Interior glow with noise detail ---
     float glowCatMix = mix(0.72, 0.0, uSelected);
     vec3 glowColor   = mix(vec3(0.85, 0.92, 1.0), uColor, glowCatMix);
-    vec3 glow        = glowColor * (1.0 - NdotV) * uGlowIntensity;
+    // Internal noise adds visible structure to the core
+    float noiseDetail = mix(internalNoise * 0.4 + caustic * 0.3, 0.0, uSelected);
+    vec3 glow = glowColor * ((1.0 - NdotV) * uGlowIntensity + noiseDetail);
 
     // --- Composite ---
-    // Unselected: original appearance — rim-only iridescence, single specular, low alpha.
-    // Selected:   chrome — face iridescence, 3x specular, broad sheen, more opaque.
     float baseTint    = 0.18 * (1.0 - uSelected);
     float iridMult    = mix(fresnel, mix(0.38, 1.4, fresnel), uSelected);
     float specMult    = mix(1.0,  3.2, uSelected);
     float sheenMult   = mix(0.0,  2.8, uSelected);
-    float alphaLow    = mix(0.08, 0.32, uSelected);
-    float alphaHigh   = mix(0.88, 0.96, uSelected);
+    float alphaLow    = mix(0.12, 0.32, uSelected);
+    float alphaHigh   = mix(0.92, 0.96, uSelected);
     float specAlpha   = mix(0.35, 0.40, uSelected);
 
     vec3  col  = iridesColor * iridMult
                + uColor      * baseTint
                + vec3(1.0)              * spec      * specMult
                + vec3(0.93, 0.97, 1.0) * specBroad * sheenMult
+               + vec3(0.7, 0.85, 1.0)  * rimSpec
                + glow;
     float alpha = mix(alphaLow, alphaHigh, fresnel) + spec * specAlpha;
 
-    // Selected: override the Fresnel rim with blue-white translucent soap film.
+    // Add internal structure to alpha for unselected
+    alpha += noiseDetail * 0.15 * (1.0 - uSelected);
+
+    // Selected: soap film rim
     vec3  soapRim = vec3(0.82, 0.95, 1.0) * 1.35;
     float rimMask = uSelected * pow(fresnel, 1.8);
     col   = mix(col,   soapRim,      rimMask * 0.95);
@@ -478,7 +761,7 @@ const BUBBLE_FRAG = `
 `;
 
 // ════════════════════════════════════════════════════════
-//  SOAP BUBBLE SHADER  (selected orb — thin-film optics)
+//  ENHANCED SOAP BUBBLE SHADER (selected orb)
 // ════════════════════════════════════════════════════════
 const SOAP_VERT = `
   uniform float uTime;
@@ -490,22 +773,18 @@ const SOAP_VERT = `
   varying vec3 vWorldPos;
 
   void main() {
-    // World-space position for thickness gradient
     vec4 wp    = modelMatrix * vec4(position, 1.0);
     vWorldPos  = wp.xyz;
-
-    // World-space normal (valid for uniform scale)
     vNormal    = normalize(mat3(modelMatrix) * normal);
-
-    // World-space view direction toward camera
     vViewDir   = normalize(cameraPosition - vWorldPos);
 
-    // Organic vertex wobble along object-space normal
     float d = 0.0;
     d += sin(position.x * 2.0  + uTime * uDisplaceSpeed * 1.2) * 0.35;
     d += sin(position.y * 3.0  + uTime * uDisplaceSpeed * 0.8) * 0.25;
     d += sin(position.z * 2.5  + uTime * uDisplaceSpeed * 1.0) * 0.20;
     d += sin((position.x + position.y) * 4.0 + uTime * uDisplaceSpeed * 1.5) * 0.20;
+    // Extra gentle wobble for organic feel
+    d += sin(position.x * 7.0 + position.y * 5.0 + uTime * uDisplaceSpeed * 0.4) * 0.08;
     vec3 displaced = position + normal * d * uDisplaceAmp;
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
@@ -523,16 +802,22 @@ const SOAP_FRAG = `
   varying vec3 vViewDir;
   varying vec3 vWorldPos;
 
-  // Dim procedural env — shapes reflections without overpowering the film color
+  // Enhanced procedural env with more reflections
   vec3 sampleEnv(vec3 R) {
-    vec3 col = vec3(0.012, 0.012, 0.022);
-    col += vec3(0.03, 0.04, 0.07) * pow(max(R.y, 0.0), 2.0);
+    vec3 col = vec3(0.015, 0.015, 0.028);
+    col += vec3(0.04, 0.05, 0.09) * pow(max(R.y, 0.0), 2.0);
+    // Key light — bright hotspot
     float k1 = max(dot(R, normalize(vec3( 0.70,  0.55, -0.45))), 0.0);
-    col += vec3(0.45, 0.43, 0.40) * pow(k1, 18.0);   // tight key: white hotspot
+    col += vec3(0.55, 0.52, 0.48) * pow(k1, 22.0);
+    // Cool blue fill
     float k2 = max(dot(R, normalize(vec3(-0.65,  0.30,  0.40))), 0.0);
-    col += vec3(0.04, 0.07, 0.18) * pow(k2, 8.0);    // cool blue fill
+    col += vec3(0.06, 0.10, 0.24) * pow(k2, 8.0);
+    // Cold rim
     float k3 = max(dot(R, normalize(vec3( 0.10, -0.25, -0.96))), 0.0);
-    col += vec3(0.05, 0.07, 0.12) * pow(k3, 22.0);   // cold rim
+    col += vec3(0.06, 0.09, 0.16) * pow(k3, 22.0);
+    // Warm secondary
+    float k4 = max(dot(R, normalize(vec3(-0.4, 0.7, 0.2))), 0.0);
+    col += vec3(0.08, 0.04, 0.12) * pow(k4, 12.0);
     return col;
   }
 
@@ -543,52 +828,49 @@ const SOAP_FRAG = `
     float cosT1  = max(dot(N, V), 0.0);
     float cosT2  = sqrt(max(0.0, 1.0 - (1.0 - cosT1 * cosT1) / (uFilmIOR * uFilmIOR)));
 
-    // Thickness keyed to the NORMAL direction (sphere-local), not world position.
-    // N components are always in [-1,1] regardless of where the orb sits in the scene,
-    // so every bubble gets the same smooth 1-2 band gradient — top lighter, bottom heavier,
-    // with a gentle organic ripple — matching real gravity-driven soap film drainage.
+    // Thickness with more organic variation
     float thick = uThicknessBase
       + uThicknessRange * (0.5 + 0.5 * sin(N.y * 2.5 + uTime * 0.25))
-      + 55.0 * sin(N.x * 2.0 + N.z * 1.5 + uTime * 0.12);
+      + 55.0 * sin(N.x * 2.0 + N.z * 1.5 + uTime * 0.12)
+      + 30.0 * sin(N.x * 4.0 + N.y * 3.0 - uTime * 0.18)
+      + 15.0 * cos(N.z * 5.0 + N.x * 2.5 + uTime * 0.08);
 
-    // Optical path difference (nm)
     float opd = 2.0 * uFilmIOR * thick * cosT2;
 
-    // Per-wavelength thin-film interference (physics model, π phase flip included)
+    // Per-wavelength thin-film interference
     vec3 irides = vec3(
       0.5 - 0.5 * cos(6.28318 * opd / 650.0),
       0.5 - 0.5 * cos(6.28318 * opd / 510.0),
       0.5 - 0.5 * cos(6.28318 * opd / 475.0)
     );
 
-    // Desaturate toward pastel — real soap films are soft, not neon
+    // Softer desaturation
     float luma = dot(irides, vec3(0.299, 0.587, 0.114));
-    vec3 irides_soft = mix(vec3(luma), irides, 0.50);      // 50% desaturation
-    // Bias the hue toward cool blue-white (the character of a soap film)
-    irides_soft = mix(irides_soft, vec3(0.72, 0.86, 1.0), 0.28);
+    vec3 irides_soft = mix(vec3(luma), irides, 0.55);
+    irides_soft = mix(irides_soft, vec3(0.72, 0.86, 1.0), 0.22);
 
-    // Schlick Fresnel (IOR 1.33 → R0 ≈ 0.020)
+    // Schlick Fresnel
     float r0 = (uFilmIOR - 1.0) / (uFilmIOR + 1.0);
     float R0 = r0 * r0;
     float F  = R0 + (1.0 - R0) * pow(1.0 - cosT1, 5.0);
 
-    // Environment (kept dim: tints the rim without dominating)
     vec3 Rdir   = reflect(-V, N);
     vec3 envCol = sampleEnv(Rdir);
 
-    // Specular hotspot (scene directional light at 40, 60, 30)
-    vec3  L    = normalize(vec3(40.0, 60.0, 30.0));
-    vec3  H    = normalize(L + V);
-    float spec = pow(max(dot(N, H), 0.0), 256.0);
+    // Dual specular for more realism
+    vec3  L1   = normalize(vec3(40.0, 60.0, 30.0));
+    vec3  H1   = normalize(L1 + V);
+    float spec1 = pow(max(dot(N, H1), 0.0), 256.0);
+    vec3  L2   = normalize(vec3(-25.0, 40.0, -20.0));
+    vec3  H2   = normalize(L2 + V);
+    float spec2 = pow(max(dot(N, H2), 0.0), 180.0) * 0.4;
 
-    // Composite: pastel soap-film veil over transparent void
-    // F gates how much color is visible — almost none at centre, peaks at rim
-    vec3 col = irides_soft * (F * 1.2 + 0.04) * (vec3(0.85) + envCol)
-             + vec3(1.0) * spec * 0.80;
+    vec3 col = irides_soft * (F * 1.3 + 0.05) * (vec3(0.88) + envCol)
+             + vec3(1.0) * spec1 * 0.85
+             + vec3(0.9, 0.95, 1.0) * spec2 * 0.5;
 
-    // Alpha: nearly invisible centre, translucent iridescent rim
-    float alpha = mix(0.03, 0.82, F);
-    alpha = max(alpha, spec * 0.78);
+    float alpha = mix(0.025, 0.85, F);
+    alpha = max(alpha, spec1 * 0.78 + spec2 * 0.3);
 
     gl_FragColor = vec4(col * uBrightness, clamp(alpha, 0.0, 1.0));
   }
@@ -612,15 +894,12 @@ const RESUME = {
     { title: "Certified Scrum Master (CSM)", subtitle: "Professional Certification", desc: "Experienced in aligning cross-functional teams around shared goals to deliver high-impact solutions. Primarily focused on creating adaptive, high-performing teams that thrive in fast-paced environments, combined with strategic planning and hands-on facilitation to deliver quality products on time and within scope.", tags: ["Servant Leadership","Sprint Planning", "Daily Stand-ups","Retrospectives", "Backlog Grooming", "Impediment Removal", "Velocity Tracking", "Capacity Planning", "Conflict Resolution", "Stakeholder Management","Change Management", "Cross-Functional Team Leadership","Burn-down Charts","Velocity Tracking", "Scrum Ceremonies"],
     meta: { Year:"2022-2024"}, links: [{ label: "Certified Badge", url: "https://bcert.me/seycffidc" },{ label: "What is this?", url: "https://www.scrumalliance.org/get-certified/scrum-master-track/certified-scrummaster" }
     ]}
-    /* { title: "AWS Solutions Architect", subtitle: "Professional Certification", desc: "Certified in designing distributed systems on AWS — compute, storage, networking, and security best practices.", tags: ["Cloud Architecture","AWS","Infrastructure"], meta: { Year:"2023", Credential:"SAP-C02" } }
-  */
 ],
 experience: [
-    
 {
 title: "AI Consultant: Digital Product Owner / GenAI Delivery Manager",
     subtitle: "(Optomi) Ally Financial",
-    desc: "I currently support a portfolio of enterprise generative AI use cases across Ally, estimated to deliver $20M in savings & incremental revenue in 2026, with a goal of $100M by the end of 2027. In our enterprise toolbelt, we have purpose built proprietary solutions, leveraging industry leading large language models (LLMs), as well as a variety of third party, vendor built solutions that we have integrated & continue to integrate into workflows & processes.\n\n\I work with teams across the organization to: strategize & architect the actual mechanics of integrating AI into their workflows, build ai agents to streamline & execute processes, learn how to prompt engineer effectively, identify vendor solutions that fit team + orgizational needs, understand how to deploy solutions without creating security or governance issues, & measure what drives value.\n\n I facilitate product workshops across various LoBs to identify high-value use cases and support teams in turning ideas into production solutions. I leverage AI Agents, Power Automate, CoPilot Studio, LangGraph, MCP servers, & other technologies to automate research functions, competitive analysis, & internal workflows. ",
+    desc: "I currently support a portfolio of enterprise generative AI use cases across Ally, estimated to deliver $20M in savings & incremental revenue in 2026, with a goal of $100M by the end of 2027. In our enterprise toolbelt, we have purpose built proprietary solutions, leveraging industry leading large language models (LLMs), as well as a variety of third party, vendor built solutions that we have integrated & continue to integrate into workflows & processes.\n\n\I work with teams across the organization to: strategize & architect the actual mechanics of integrating AI into their workflows, build ai agents to streamline & execute processes, learn how to prompt engineer effectively, identify vendor solutions that fit team + orgizational needs, understand how to deploy solutions without creating security or governance issues, & measure what drives value.\n\n I facilitate product workshops across various LoBs to identify high-value use cases and support teams in turning ideas into production solutions. I leverage AI Agents, Power Automate, CoPilot Studio, LangGraph, MCP servers, & other technologies to automate research functions, competitive analysis, & internal workflows. ",
     tags: ["AI Product Strategy", "GenAI Implementation", "Digital Product Management", "AI/ML Governance", "Vendor Evaluation", "Cross-Functional Leadership", "Agentic AI", "Prompt Engineering", "KPI Design", "Workflow Automation", "API Integration", "LangGraph", "MCP Servers", "Code Gen Tools", "Text-to-SQL"],
     meta: { Period: "April 2025 — Present", Location: "Charlotte, NC", Type: "Contract", Industry: "AI, Digital Banking" },
     links: [{ label: "Ally Financial", url: "https://www.ally.com/" },{ label: "GenAI @ Ally Financial", url: "https://www.ally.com/about/generative-ai/" },{ label: "Ally.AI Enterprise Rollout: 7.23.25", url: "https://media.ally.com/2025-07-23-Ally-Financial-rolls-out-proprietary-AI-platform-enterprise-wide" }]
@@ -628,8 +907,25 @@ title: "AI Consultant: Digital Product Owner / GenAI Delivery Manager",
   {
     title: "Senior Innovation Product Owner / Product Manager",
     subtitle: "Forvis Mazars US",
-    desc: "Brought research-backed ideas and innovative product strategies through the EDGE product management lifecycle to build professional software solutions. Drove product improvements through research, market analysis, and user behavior insights, aligning roadmaps with business goals & user needs.\n\n Established practices, guides, and OKRs leading to a 22% increase in feature adoption and 10% increase in UX satisfaction on the ProBank Advisor platform. Averaged a 98.7% sprint completion rate while mentoring a team of product owners.\n\nLed definition and design of a dynamic investment and business valuation tool to streamline internal audit process, and a PCI compliance tool aimed to reduce manual efforts by up to 20 hours per engagement(~15% time savings).\n\nResearched AI technologies to lead AI workshops for prompt engineering and MS CoPilot best practices. Reinvented a 'Blockchain dictionary' within enterprise sharepoint instance, adding more descriptive fields, redesigning page to increase user satisfaction, and increasing total entries from 22 to over 350 (16x) utilizing AI tools for all research.",
-    tags: ["Product Strategy", "Figma", "Azure DevOps", "GenAI", "Blockchain", "Pendo", "SQL", "Tableau", "Scrum", "XR/VR/AR", "Miro","Workshop Facilitation","Stakeholder Mgmt","A/B Testing"],
+    desc: "Led innovation-driven products across AI, immersive technology, client facing solutions, and internal software experiences, translating emerging capabilities into production grade software, practical product experiments, workflow improvements, and adoption strategies. Combined product strategy, facilitation, and technical fluency to shape new concepts, align stakeholders, and support globally distributed teams.\n\nPiloted immersive workshop formats in Arthur VR for global innovation teams, integrating tools such as Miro and applying AI-enabled workflows to improve ideation, collaboration, and early concept validation across dispersed groups. Researched and tested GenAI, ML, blockchain, and XR/VR/AR use cases to identify practical opportunities for productivity gains, knowledge-sharing, and new product experiences.\n\nEstablished practices, guides, and OKRs that contributed to a 22% increase in feature adoption and a 10% increase in UX satisfaction on the ProBank Advisor platform, while averaging a 98.7% sprint completion rate and mentoring a team of product owners.\n\nLed definition and design of a dynamic investment and business valuation tool to streamline internal audit processes, along with a PCI compliance tool projected to reduce manual effort by up to 20 hours per engagement (~15% time savings). Also led AI workshops on prompt engineering and Microsoft Copilot best practices, and reimagined a blockchain knowledge resource that expanded from 22 to 350+ entries through AI-assisted research and content design.",
+    // tags: ["Product Strategy", "Figma", "Azure DevOps", "GenAI", "Blockchain", "Pendo", "SQL", "Tableau", "Scrum", "XR/VR/AR", "Miro","Workshop Facilitation","Stakeholder Mgmt","A/B Testing"],
+    tags: [  "0→1 Product",
+    "Product Strategy",
+    "AI Product",
+    "GenAI",
+    "Copilot",
+    "XR/VR Collaboration",
+    "Immersive Workshops",
+    "Miro",
+    "Figma",
+    "Azure DevOps",
+    "Pendo",
+    "SQL",
+    "Scrum",
+    "Workshop Facilitation",
+    "Stakeholder Management",
+    "Blockchain",
+    "A/B Testing"],
     meta: { Period: "Sep 2023 — April 2025", Location: "Virtual, NC", Type: "Full-time", Industry: "Professional Services" },
     links: [{ label: "Forvis Mazars", url: "https://www.forvismazars.com" },{ label: "Forvis Mazars launches ProBank Advisor", url: "https://www.forvismazars.us/about-us/newsroom/news-releases/forvis-mazars-launches-probank-advisor" },{ label: "About ProBank Advisor", url: "https://www.forvismazars.us/services/products/probank-advisor" }]
   },
@@ -716,32 +1012,30 @@ title: "AI Consultant: Digital Product Owner / GenAI Delivery Manager",
       tags: ["MS Excel","Financial Modeling","Solution Engineering","Custom Tooling","Math","Process Improvement","Generative","AI"], image: "https://weduitglobal.com/Weduitphotos/sellerfinancingcalc.png", meta: { Role:"Product Lead & Developer", Timeline:"2020-", Team:"Phil Rich", Status:"Ongoing" }, links: [{ label:"Preview: Seller Financing Calc", url:"https://weduitglobal.com/Weduitphotos/sellerfinancingcalc.png" }]  }, 
     { title: "SiteCraft", subtitle: "Real Estate Investor Software Suite", desc: "A new project I started to enable my real estate journey with the technical tools needed. Currently working on a project management tool to help manage construction projects, 3D autoCAD blueprint builder, property recon tools, and more.",video: "https://www.weduitglobal.com/Weduitphotos/sitecraft_pm.mp4",tags: ["Real Estate","Property Search", "Project Management","AutoCAD","Planning Tools","Calculators","Solution Design","Software Architecture"], meta: { Role:"Product & Design Lead, Software Development Manager", Timeline:"2026-", Team:"Phil Rich", Status:"In Progress" }, links: [{ label:"Watch a clip of SiteCraft PM", url:"https://weduitglobal.com/Weduitphotos/sitecraft_pm.mp4" },{ label:"Watch a clip of Planforge", url:"https://weduitglobal.com/Weduitphotos/planforge.mp4" }]  }, 
     { title: "Golfballin", subtitle: "Golf Ball Designer", desc: "A passion project I'm working on, one day I will pay my golf bill with gall balls.",video: "https://www.weduitglobal.com/Weduitphotos/jolfball.mp4", tags: ["Golf","Product Design", "Pricing","Planning Tools","Solution Design","Software Architecture"], meta: { Role:"Product & Design Lead, Software Development Manager", Timeline:"2026-", Team:"Phil Rich", Status:"In Progress" }, links: [{ label:"Watch a clip", url:"https://weduitglobal.com/Weduitphotos/jolfball.mp4" }]  }, 
-    // { title: "", subtitle: "", desc: "", tags: [""], meta: { Role:"Product & Design Lead", Timeline:"2023", Team:"Phil Rich", Status:"COMPLETE" }, links: [{ label:"View Work Here", url:"" }]
-    
-    // { title: "E-Commerce Platform", subtitle: "Full-Stack Web Application", desc: "Designed and built a modern e-commerce platform handling 10K+ daily transactions. Features real-time inventory management, AI-powered product recommendations, and a headless CMS.", tags: ["React","Node.js","PostgreSQL","Redis","AWS"], meta: { Role:"Lead Developer", Timeline:"2024 — Present", Team:"5 engineers", Status:"Live" }, links: [{ label:"View Live", url:"#" },{ label:"Case Study", url:"#" }] },
-    // { title: "AI Analytics Dashboard", subtitle: "Data Visualization Suite", desc: "Interactive analytics dashboard surfacing ML model performance, A/B test results, and predictive forecasts for a data science team of 20+ researchers.", tags: ["TypeScript","D3.js","Python","FastAPI","Docker"], meta: { Role:"Frontend Architect", Timeline:"2023 — 2024", Team:"3 engineers", Status:"Production" }, links: [{ label:"GitHub", url:"#" }] },
-    // { title: "Mobile Fitness App", subtitle: "Cross-Platform Mobile", desc: "Fitness tracking app with workout planning, progress analytics, social challenges, and wearable integration. 50K+ downloads in first quarter.", tags: ["React Native","Firebase","HealthKit","GraphQL"], meta: { Role:"Solo Developer", Timeline:"2023", Team:"Solo", Status:"App Store" }, links: [{ label:"App Store", url:"#" },{ label:"Play Store", url:"#" }] },
-    // { title: "Design System", subtitle: "Component Library", desc: "Comprehensive design system with 60+ accessible components, theming engine, and automated visual regression testing. Adopted across 4 product teams.", tags: ["Storybook","React","Figma API","Chromatic","a11y"], meta: { Role:"Design Engineer", Timeline:"2022 — 2023", Team:"3 people", Status:"Internal" }, links: [{ label:"Documentation", url:"#" }] },
-    // { title: "Real-Time Chat System", subtitle: "WebSocket Infrastructure", desc: "Scalable real-time messaging supporting 100K concurrent connections with E2E encryption, file sharing, and threaded conversations.", tags: ["Go","WebSockets","Redis Pub/Sub","Kubernetes"], meta: { Role:"Backend Engineer", Timeline:"2022", Team:"4 engineers", Status:"Production" }, links: [{ label:"Architecture Doc", url:"#" }] }
-  ],
+],
    
 skills: [
-{ title: "(Future) Ski Instructor", subtitle: "Passion & Hobby", desc: "I have always loved the snow, but I fell in love with skiing in 2014 while in college at App State. I was fortunate enough to learn both informally from a 12 year old ski wizard, and formally through an intermediate ski class for a credit in physical education.", tags: ["Pizza","French Fry","Armada Skis","Twin Tips","when_Japan?"] },
-{ title: "Golf (Stick + Disc)", subtitle: "Passion & Hobby", desc: "Being a lifelong athelete in adulthood, I am glad I started playing Golf in 2022. I truly enjoy the excuse to get outside with people I care about and enjoy nature. I push myself to play at least once a week when possible, if not more. Working on some golf ideas...", tags: ["Lefty","Handicap = 17.8"] },
-{ title: "Making Music", subtitle: "Passion & Hobby", desc: "Born into the world of radio and DJing, I have the following experience: \n-20+ years: Drums & Percussion\n-6+ years: Music Production\n-2+ years: Casual DJ", links: [{label:"Book Me",url:"https://philrich.live"}], tags: ["Drums","Music Production","Music Lessons","DJ your wedding","Cats love it"] },
-{ title: "Natural Farming", subtitle: "Passion & Hobby", desc: "I've been gardening since 2020, and I started a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants(1250 starter plants in 2024), will grow upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.", tags: ["Soil & Plant Biology","Chemistry","JADAM","Korean Natural Farming (KNF)","Organic Inputs","HOT Peppers"], links: [{label: "Website Under Construction", url: "https://www.bluerocknurseries.com/"}, {label:"Instagram", url: "https://www.instagram.com/bluerocknurseries/"}] },
+{
+    title: "3D / Spatial Computing",
+    subtitle: "Emerging Specialization",
+    desc: "Developing hands-on capabilities in spatial computing, immersive web experiences, and 3D product design. Focused on interactive 3D experiences, spatial UX, product visualization, and rapid prototyping of interactive room- and object-based concepts.",
+    tags: ["Three.js", "WebXR", "Blender", "Spatial UX", "3D Product Visualization", "AR/VR Prototyping", "Interactive 3D", "Scene Composition", "Mixamo"],
+    links: [
+      { label: "Learn to create WebXR, VR and AR, experiences using Three.JS", url: "https://www.udemy.com/certificate/UC-0f1fc2db-2760-41cd-a308-cf8b64d2e8b3/" },
+      { label: "In Progress: Blender Course", url: "https://www.udemy.com/course/blendercourse" }
+    ]
+  },
 { title: "Data Analytics", subtitle: "Former Data Analyst", desc: "Will update later. See experience section for more info.", tags: ["SQL","Python","Business Intelligence","Reporting","Excel","Data Modeling","Data Engineering","Data pipelines"], links: [{label: "The Complete SQL Bootcamp 2022: Go from Zero to Hero", url: "https://www.udemy.com/certificate/UC-dff15609-d389-4656-8228-c6a1d0104135/"}, {label:"Python for Finance: Investment Fundamentals & Data Analytics(In Progress)", url: "https://www.udemy.com/course/python-for-finance-investment-fundamentals-data-analytics/"}] },
 { title: "Design & UX", subtitle: "Cross-Discipline", desc: "Design and engineer professional, clean, and/or cool experiences — strong skills in UI/UX, prototyping, design systems, and user research.", tags: ["Miro","Figma","Design Systems","Prototyping","Wireframing","User Research","Accessibility","Motion Design"] },
 { title: "Fullstack Development", subtitle: "Learning, Learning, Learning", desc: "I've been messing around with software since I was a kid. I am constantly trying to keep up with the trends, and am thankful for AI coding tools.", tags: ["Frontend","Backend","Python","SQL","C","PHP","APIs","PostgreSQL","Web Hosting","MySpace"], links: [{label:"Completed: The Complete Web Developer Bootcamp",url:"https://www.udemy.com/certificate/UC-4a0a783b-e697-4276-9f8c-590b0ab90855/"}] },
 { title: "Frontend Development", subtitle: "Developing faster than ever. Core Dev Focus", desc: "Deep expertise in modern frontend frameworks and tooling. Focus on performance, accessibility, and delightful user experiences with smooth animations.", tags: ["React","TypeScript","Next.js","Vue","Tailwind CSS","Three.js","GSAP","Framer Motion"] },
 { title: "Product Adoption & Analytics", subtitle: "Pendo Admin", desc: "Will update later. See experience section for more info.", tags: ["Pendo","User Behavior","A/B Testing","User Guides","User Retention", "Stickiness","Product Metrics"], links: [{label: "Pendo Admin", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url"}, {label:"Pendo Essentials for Web", url: "https://www.credly.com/badges/0f7c8eec-0e7d-4f23-82f7-8a4d362eda2b/public_url"}] },
 { title: "Product Management", subtitle: "Current Professional Focus", desc: "Have a passion for building software that users love and need. I love working with development teams and am always curious about how things are built, and how we can improve them.", tags: ["Agile","Scrum","Kanban","Cross-functional Collaboration","Requirement Gathering","Prototyping","Product Roadmaps","Portfolio Management","Product Backlog", "Stakeholder Management"], links: {label:"Certification: AI for Product Management", url:"https://www.credly.com/badges/7c66f10a-8f2e-48a1-b1da-0d3d972b6929/public_url"} },
-
-     // { title: "", subtitle: "Learning some cool things", desc: "", tags: ["Node.js","Python","Go","PostgreSQL","MongoDB","AWS","Docker","Terraform"] },
-
+{ title: "Winter Sports", subtitle: "Passion & Hobby", desc: "I have always loved the snow, but I fell in love with skiing in 2014 while in college at App State. I was fortunate enough to learn both informally from a 12 year old ski wizard, and formally through an intermediate ski class for a credit in physical education.", tags: ["Pizza","French Fry","Armada Skis","Twin Tips","when_Japan?"] },
+{ title: "Golf", subtitle: "Passion & Hobby", desc: "Being a lifelong athelete in adulthood, I am glad I started playing Golf in 2022. I truly enjoy the excuse to get outside with people I care about and enjoy nature. I push myself to play at least once a week when possible, if not more. Working on some golf ideas...", tags: ["Lefty","Handicap = 17.8"] },
+{ title: "Music Production & Audio Engineering", subtitle: "Passion & Hobby", desc: "Born into the world of radio and DJing, I have the following experience: \n-20+ years: Drums & Percussion\n-6+ years: Music Production\n-2+ years: Casual DJ", links: [{label:"Book Me",url:"https://philrich.live"}], tags: ["Drums","Music Production","Music Lessons","DJ your wedding","Cats love it"] },
+{ title: "Natural Farming", subtitle: "Passion & Hobby", desc: "I've been gardening since 2020, and I started a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants(1250 starter plants in 2024), will grow upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.", tags: ["Soil & Plant Biology","Chemistry","JADAM","Korean Natural Farming (KNF)","Organic Inputs","HOT Peppers"], links: [{label: "Website Under Construction", url: "https://www.bluerocknurseries.com/"}, {label:"Instagram", url: "https://www.instagram.com/bluerocknurseries/"}] },
 ]
- 
-  
 };
 
 // ════════════════════════════════════════════════════════
@@ -757,7 +1051,6 @@ const CC = {
 const CATS = Object.keys(RESUME);
 const SPREAD = 45;
 
-// Extract the start year from an item's metadata
 function getStartYear(item, cat) {
   if (cat === 'experience' && item.meta && item.meta.Period) {
     const MONTHS = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
@@ -772,17 +1065,11 @@ function getStartYear(item, cat) {
   return null;
 }
 
-// Category cluster centers — populated during NL building, used by buildLabels
 const CAT_CENTERS = {};
+const GOLDEN_ANG = Math.PI * (3 - Math.sqrt(5));
+const HELIX_R    = 9;
+const HELIX_STEP = 4.5;
 
-// Layout constants for the helix spiral used by time-based categories
-const GOLDEN_ANG = Math.PI * (3 - Math.sqrt(5)); // ≈137.5° — golden angle per step
-const HELIX_R    = 9;   // helix radius (xz plane)
-const HELIX_STEP = 4.5; // vertical distance (y) between consecutive nodes
-
-// Build flat node array
-// — experience & education: 3-D helix, oldest at bottom → newest at top
-// — all other categories: evenly-spaced ring cluster in the xz plane
 const NL = [];
 CATS.forEach((cat, ci) => {
   const a  = (ci / CATS.length) * Math.PI * 2 - Math.PI * 0.5;
@@ -794,7 +1081,7 @@ CATS.forEach((cat, ci) => {
       (p, q) => (getStartYear(p, cat) || 0) - (getStartYear(q, cat) || 0)
     );
     const n     = items.length;
-    const baseY = -((n - 1) * HELIX_STEP) / 2; // centre spiral at y = 0
+    const baseY = -((n - 1) * HELIX_STEP) / 2;
     const topY  = baseY + (n - 1) * HELIX_STEP;
     CAT_CENTERS[cat] = { cx, cz, labelY: topY + 9 };
 
@@ -813,7 +1100,7 @@ CATS.forEach((cat, ci) => {
   } else {
     const items    = RESUME[cat];
     const n        = items.length;
-    const clusterR = 4 + n * 1.5; // radius scales gently with item count
+    const clusterR = 4 + n * 1.5;
     CAT_CENTERS[cat] = { cx, cz, labelY: 15 };
 
     items.forEach((item, ii) => {
@@ -831,8 +1118,6 @@ CATS.forEach((cat, ci) => {
   }
 });
 
-// Compute year-based brightness factor for experience and education nodes
-// yearFactor: 0 = oldest (darkest), 1 = newest (lightest)
 (function() {
   const applicable = NL.filter(d => d.category === 'experience' || d.category === 'education');
   let minY = Infinity, maxY = -Infinity;
@@ -858,13 +1143,15 @@ let hov = null, sel = null;
 let flyA = null;
 let snHideTimer = null;
 let hitMeshes = [];
-
-// Mobile/touch detection (set in boot())
 let isMobile = false;
 let isTouchDevice = false;
 
-// Orbit state (fully manual — no CDN addon dependency)
-const orbit = { theta: 0, phi: 0.45, dist: 130, tx: 0, ty: 0, tz: 0 };
+// Auto-drift state
+let autoDrift = true;
+let driftSpeed = 0.0003; // very slow: full 360 in ~5.8 hours, feels like gentle breathing
+let driftBasePhi = 1.227;
+
+const orbit = { theta: 0, phi: 1.227, dist: 149, tx: 0, ty: 0, tz: 0 };
 let isDrag = false, dragBtn = -1, px = 0, py = 0;
 
 const rc = new THREE.Raycaster();
@@ -900,6 +1187,124 @@ function createBubbleMaterial(size) {
   });
 }
 
+// ════════════════════════════════════════════════════════
+//  SHOOTING STARS
+// ════════════════════════════════════════════════════════
+let shootingStars = [];
+const SHOOTING_STAR_POOL = 5;
+
+function createShootingStar() {
+  const points = [];
+  for (let i = 0; i < 20; i++) {
+    points.push(new THREE.Vector3(i * 0.5, 0, 0));
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  
+  // Gradient opacity along the trail
+  const colors = new Float32Array(20 * 3);
+  for (let i = 0; i < 20; i++) {
+    const t = i / 19;
+    const brightness = t * t; // Brighter at head
+    colors[i * 3] = brightness;
+    colors[i * 3 + 1] = brightness;
+    colors[i * 3 + 2] = brightness;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const mat = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const line = new THREE.Line(geo, mat);
+  line.visible = false;
+  scene.add(line);
+
+  return {
+    line,
+    active: false,
+    progress: 0,
+    speed: 0,
+    startPos: new THREE.Vector3(),
+    direction: new THREE.Vector3(),
+    lifetime: 0,
+    delay: Math.random() * 20 + 5, // 5-25 seconds between spawns
+    timer: Math.random() * 10, // stagger initial spawn
+  };
+}
+
+function initShootingStars() {
+  for (let i = 0; i < SHOOTING_STAR_POOL; i++) {
+    shootingStars.push(createShootingStar());
+  }
+}
+
+function spawnShootingStar(star) {
+  // Random position in the far background
+  const spread = 250;
+  star.startPos.set(
+    (Math.random() - 0.5) * spread,
+    50 + Math.random() * 120,
+    (Math.random() - 0.5) * spread - 80
+  );
+
+  // Random downward-ish diagonal direction
+  star.direction.set(
+    (Math.random() - 0.5) * 2,
+    -0.5 - Math.random() * 0.5,
+    (Math.random() - 0.5)
+  ).normalize();
+
+  star.speed = 80 + Math.random() * 120;
+  star.lifetime = 0.6 + Math.random() * 0.8;
+  star.progress = 0;
+  star.active = true;
+  star.line.visible = true;
+}
+
+function updateShootingStars(dt) {
+  shootingStars.forEach(star => {
+    if (!star.active) {
+      star.timer += dt;
+      if (star.timer >= star.delay) {
+        star.timer = 0;
+        star.delay = Math.random() * 25 + 8;
+        spawnShootingStar(star);
+      }
+      return;
+    }
+
+    star.progress += dt;
+    const t = star.progress / star.lifetime;
+
+    if (t >= 1) {
+      star.active = false;
+      star.line.visible = false;
+      star.line.material.opacity = 0;
+      return;
+    }
+
+    // Fade: ramp up quickly, fade out slowly
+    const fade = t < 0.1 ? t / 0.1 : 1 - Math.pow((t - 0.1) / 0.9, 2);
+    star.line.material.opacity = fade * 0.7;
+
+    // Update position — trail follows the head
+    const headPos = star.startPos.clone().addScaledVector(star.direction, star.speed * star.progress);
+    const positions = star.line.geometry.attributes.position;
+    for (let i = 0; i < 20; i++) {
+      const trailT = i / 19;
+      const trailPos = headPos.clone().addScaledVector(star.direction, -(1 - trailT) * 8);
+      positions.setXYZ(i, trailPos.x, trailPos.y, trailPos.z);
+    }
+    positions.needsUpdate = true;
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════
 function boot() {
   isMobile = window.matchMedia('(max-width: 640px)').matches;
   isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -916,7 +1321,6 @@ function boot() {
     ren.setPixelRatio(Math.min(devicePixelRatio, 2));
     document.getElementById('scene-container').appendChild(ren.domElement);
 
-    // Lights
     scene.add(new THREE.AmbientLight(0x1a1a2e, 1.2));
     const dl = new THREE.DirectionalLight(0xffffff, 0.55);
     dl.position.set(40, 60, 30);
@@ -924,10 +1328,15 @@ function boot() {
     const fl = new THREE.DirectionalLight(0x6644aa, 0.2);
     fl.position.set(-30, -10, -40);
     scene.add(fl);
+    // Additional rim light for orb definition
+    const rl = new THREE.DirectionalLight(0x334488, 0.15);
+    rl.position.set(0, -20, -50);
+    scene.add(rl);
 
     if (isMobile) {
-      orbit.dist = 175;
-      orbit.phi  = 0.38;  // ~22° from straight down — high overhead, slightly angled
+      orbit.dist = 179;
+      orbit.phi  = 0.357;
+      driftBasePhi = orbit.phi;
       camFromOrbit();
     }
 
@@ -946,7 +1355,9 @@ function boot() {
     }
     buildLines();
     buildLabels();
+    initShootingStars();
     bindEvents();
+    buildSettingsUI();
 
     setTimeout(() => document.getElementById('loader').classList.add('hidden'), 900);
     tick();
@@ -1005,7 +1416,6 @@ function buildStars() {
 
 function buildNodes() {
   const SEG = isMobile ? 24 : 48;
-  // Create a glow texture
   const gc = document.createElement('canvas');
   gc.width = 128; gc.height = 128;
   const gx = gc.getContext('2d');
@@ -1019,26 +1429,25 @@ function buildNodes() {
   NL.forEach((d, i) => {
     const c = new THREE.Color(CC[d.category].i);
 
-    // For experience/education, scale brightness by age (yearFactor: 0=oldest/darkest, 1=newest/lightest)
     const yf = (d.yearFactor !== undefined) ? d.yearFactor : 1;
-    const colorScalar  = 0.14 + yf * 0.36; // 0.14 (oldest) → 0.50 (newest)
-    const emissiveInt  = 0.07 + yf * 0.33; // 0.07 (oldest) → 0.40 (newest)
-    const glowOpacity  = 0.05 + yf * 0.17; // 0.05 (oldest) → 0.22 (newest)
-    const plIntensity  = 0.10 + yf * 0.35; // 0.10 (oldest) → 0.45 (newest)
+    const colorScalar  = 0.14 + yf * 0.36;
+    const emissiveInt  = 0.07 + yf * 0.33;
+    const glowOpacity  = 0.05 + yf * 0.17;
+    const plIntensity  = 0.10 + yf * 0.35;
 
     const geo = new THREE.SphereGeometry(d.size, SEG, SEG);
-    const baseBrightness = 0.55 + yf * 0.45; // older orbs slightly dimmer overall
+    const baseBrightness = 0.55 + yf * 0.45;
     const mat = new THREE.ShaderMaterial({
       vertexShader:   BUBBLE_VERT,
       fragmentShader: BUBBLE_FRAG,
       uniforms: {
         uTime:            { value: 0 },
         uColor:           { value: new THREE.Vector3(c.r, c.g, c.b) },
-        uFresnelPower:    { value: 3.0 },
-        uIridesFreq:      { value: 4.0 },
-        uIridesIntensity: { value: 0.38 },
-        uSpecPower:       { value: 128.0 },
-        uGlowIntensity:   { value: 0.25 },
+        uFresnelPower:    { value: 2.8 },
+        uIridesFreq:      { value: 4.5 },
+        uIridesIntensity: { value: 0.42 },
+        uSpecPower:       { value: 96.0 },
+        uGlowIntensity:   { value: 0.32 },
         uDisplaceAmp:     { value: 0.08 },
         uDisplaceSpeed:   { value: 1.5 },
         uBrightness:      { value: baseBrightness },
@@ -1052,7 +1461,6 @@ function buildNodes() {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(d.pos.x, d.pos.y, d.pos.z);
     m.userData = { ...d, idx: i, origPos: new THREE.Vector3(d.pos.x, d.pos.y, d.pos.z), baseBrightness };
-    // Store originals and precompute the soap-bubble swaps for the selected state
     m.userData.originalMat = mat;
     m.userData.originalGeo = geo;
     m.userData.bubbleGeo   = new THREE.SphereGeometry(d.size, SEG, SEG);
@@ -1060,7 +1468,6 @@ function buildNodes() {
     scene.add(m);
     meshes.push(m);
 
-    // Glow sprite — subtler now that the shader provides its own rim light
     const baseGlowOp = Math.max(0.03, glowOpacity * 0.55);
     const sm = new THREE.SpriteMaterial({ map: gt, color: CC[d.category].i, transparent: true, opacity: baseGlowOp, depthWrite: false, blending: THREE.AdditiveBlending });
     const sp = new THREE.Sprite(sm);
@@ -1070,7 +1477,6 @@ function buildNodes() {
     scene.add(sp);
     glows.push(sp);
 
-    // Point light
     if (!isMobile) {
       const pl = new THREE.PointLight(CC[d.category].i, plIntensity, d.size * 10);
       pl.position.copy(m.position);
@@ -1082,12 +1488,8 @@ function buildNodes() {
 
 function buildLines() {
   CATS.forEach(cat => {
-    // Only draw chronological lines for categories that have year data
     if (cat !== 'experience' && cat !== 'education') return;
-
     const cm = meshes.filter(m => m.userData.category === cat);
-
-    // Filter to only orbs that have a valid start year, then sort oldest → newest
     const sorted = cm
       .filter(m => m.userData._startYear != null)
       .sort((a, b) => a.userData._startYear - b.userData._startYear);
@@ -1125,44 +1527,34 @@ function buildLabels() {
 //  EVENTS
 // ════════════════════════════════════════════════════════
 function bindEvents() {
-  // Prevent browser-native page zoom on iOS.
-  // gesturestart/change covers pinch-zoom at the OS level.
-  // The double-tap guard must intercept touchstart (not touchend) because
-  // iOS Safari queues the zoom action before touchend ever fires.
   document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
   document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
   document.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
   let lastTapTime = 0;
   document.addEventListener('touchstart', e => {
     const now = Date.now();
-    if (now - lastTapTime < 350) {
-      e.preventDefault(); // kills the double-tap zoom before iOS acts on it
-    }
+    if (now - lastTapTime < 350) e.preventDefault();
     lastTapTime = now;
   }, { passive: false });
 
   const el = ren.domElement;
-
-  // Pointer tracking for pinch-to-zoom and two-finger pan
   const activePointers = new Map();
   let prevPinchDist = null;
-
-  // Tap detection state
   let downX = 0, downY = 0, downTime = 0;
   let isTapDrag = false;
 
-  // Orbit drag
   el.addEventListener('pointerdown', e => {
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     dragBtn = e.button; px = e.clientX; py = e.clientY;
     downX = e.clientX; downY = e.clientY; downTime = Date.now(); isTapDrag = false;
     isDrag = true;
     el.setPointerCapture(e.pointerId);
+    // Stop auto-drift on user interaction
+    autoDrift = false;
   });
   window.addEventListener('pointerup', e => {
     activePointers.delete(e.pointerId);
     if (activePointers.size < 2) prevPinchDist = null;
-    // Tap detection: if not dragged and within 300ms, treat as tap
     if (!isTapDrag && Date.now() - downTime < 300) {
       mp.x = (e.clientX / innerWidth) * 2 - 1;
       mp.y = -(e.clientY / innerHeight) * 2 + 1;
@@ -1177,27 +1569,20 @@ function bindEvents() {
     isDrag = false;
   });
   el.addEventListener('pointermove', e => {
-    // Update pointer position in map
     if (activePointers.has(e.pointerId)) {
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     }
-
-    // Update mouse for raycasting (single pointer only)
     if (activePointers.size <= 1) {
       mp.x = (e.clientX / innerWidth) * 2 - 1;
       mp.y = -(e.clientY / innerHeight) * 2 + 1;
     }
-
-    // Check if this is a drag (moved > 10px from down position)
     const moveDist = Math.sqrt(Math.pow(e.clientX - downX, 2) + Math.pow(e.clientY - downY, 2));
     if (moveDist > 10) isTapDrag = true;
 
-    // Two-finger pinch/pan
     if (activePointers.size === 2 && flyA === null) {
       const pts = Array.from(activePointers.values());
       const p0 = pts[0], p1 = pts[1];
       const curDist = Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2));
-
       if (prevPinchDist !== null) {
         const delta = prevPinchDist - curDist;
         orbit.dist = Math.max(8, Math.min(220, orbit.dist + delta * 0.4));
@@ -1205,16 +1590,16 @@ function bindEvents() {
       }
       prevPinchDist = curDist;
       px = e.clientX; py = e.clientY;
-      return; // Don't do single-pointer orbit when 2 fingers active
+      return;
     }
 
     if (isDrag && isTapDrag && flyA === null && activePointers.size <= 1) {
       const dx = e.clientX - px;
       const dy = e.clientY - py;
-      if (dragBtn === 0) { // Left: rotate
+      if (dragBtn === 0) {
         orbit.theta -= dx * 0.005;
         orbit.phi = Math.max(0.15, Math.min(Math.PI - 0.15, orbit.phi + dy * 0.005));
-      } else if (dragBtn === 2) { // Right: pan
+      } else if (dragBtn === 2) {
         const panSpeed = orbit.dist * 0.002;
         const right = new THREE.Vector3();
         cam.getWorldDirection(right);
@@ -1228,20 +1613,17 @@ function bindEvents() {
       camFromOrbit();
     }
 
-    // Hover tooltip
     if (!isTouchDevice) updateHover(e);
   });
   el.addEventListener('wheel', e => {
     if (flyA) return;
     orbit.dist = Math.max(8, Math.min(220, orbit.dist + e.deltaY * 0.06));
+    autoDrift = false;
     camFromOrbit();
   }, { passive: true });
   el.addEventListener('contextmenu', e => e.preventDefault());
 
-  // UI
   document.getElementById('p-close').addEventListener('click', closePanel);
-
-  // Panel swipe-to-close
   const panelEl = document.getElementById('panel');
   let swipeStartX, swipeStartY;
   panelEl.addEventListener('touchstart', e => {
@@ -1260,7 +1642,6 @@ function bindEvents() {
     applyFilter();
   }));
 
-  // Dropdown hover — show list under the hovered category button
   const snEl = document.getElementById('sidenav');
   document.querySelectorAll('.fbtn').forEach(b => {
     if (b.dataset.c === 'all') return;
@@ -1272,7 +1653,10 @@ function bindEvents() {
   });
   snEl.addEventListener('mouseenter', () => clearTimeout(snHideTimer));
   snEl.addEventListener('mouseleave', () => { snHideTimer = setTimeout(hideSideNav, 180); });
-  document.getElementById('nav-home').addEventListener('click', flyHome);
+  document.getElementById('nav-home').addEventListener('click', () => {
+    autoDrift = true; // Re-enable drift on home
+    flyHome();
+  });
   document.getElementById('nav-zin').addEventListener('click', () => {
     orbit.dist = Math.max(8, orbit.dist - 15);
     camFromOrbit();
@@ -1326,23 +1710,17 @@ function onNodeClick() {
   const hitIdx = hits[0].object.userData.idx;
   const target = meshes[hitIdx];
 
-  // If the tapped orb belongs to a different (filtered-out) category, switch the filter
-  // to match it so the panel and surrounding context make sense — no camera fly, just
-  // update the button state and brightness so selectMesh() takes over navigation.
   if (activeF !== 'all' && target.userData.category !== activeF) {
     activeF = target.userData.category;
     document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
     const btn = document.querySelector('.fbtn[data-c="' + activeF + '"]');
     if (btn) btn.classList.add('on');
-    refreshVisibility(); // re-dim without flying away
+    refreshVisibility();
   }
 
   selectMesh(target);
 }
 
-// Returns sorted {prev, next} meshes in the same category as the given mesh.
-// experience/education: sorted chronologically, no wrap (bounded by timeline).
-// all other categories: sorted by scene index, wraps continuously (last → first, first → last).
 function getAdjacentMeshes(mesh) {
   const cat = mesh.userData.category;
   const pool = meshes.filter(m => m.userData.category === cat);
@@ -1359,12 +1737,11 @@ function getAdjacentMeshes(mesh) {
   }
 }
 
-// Select an orb: highlight it, fly the camera so the next orb is in view, open the panel.
 function selectMesh(o) {
   if (navigator.vibrate) navigator.vibrate(10);
   sel = o;
+  autoDrift = false;
 
-  // Pass 1: restore any mesh currently wearing the bubble material
   meshes.forEach(m => {
     if (m.material === m.userData.bubbleMat) {
       m.geometry = m.userData.originalGeo;
@@ -1372,7 +1749,6 @@ function selectMesh(o) {
     }
   });
 
-  // Pass 2: dim non-selected via existing shader uniforms; swap selected to bubble
   meshes.forEach(m => {
     const isSel = m === o;
     const isActive = activeF === 'all' || m.userData.category === activeF;
@@ -1382,7 +1758,6 @@ function selectMesh(o) {
       m.userData.bubbleMat.uniforms.uBrightness.value = 1.0;
     } else {
       if (m.material.uniforms && m.material.uniforms.uBrightness)
-        // Active-category peers: moderately dimmed; background-category orbs: very dim but visible
         m.material.uniforms.uBrightness.value = isActive
           ? m.userData.baseBrightness * 0.35
           : m.userData.baseBrightness * 0.10;
@@ -1393,21 +1768,18 @@ function selectMesh(o) {
   glows.forEach(s => { s.material.opacity = meshes[s.userData.ni] === o ? s.userData.baseOp * 1.8 : s.userData.baseOp * 0.28; });
 
   const { prev, next, pos, total } = getAdjacentMeshes(o);
-  const ref = next || prev; // prefer facing toward next; use prev for the last node
+  const ref = next || prev;
 
   let camPos;
   if (ref && total > 1) {
-    // Direction from current orb toward the reference neighbour
     const toRef = ref.position.clone().sub(o.position).normalize();
     const up    = new THREE.Vector3(0, 1, 0);
     const right = new THREE.Vector3().crossVectors(toRef, up).normalize();
-    // Sit behind the current orb (away from ref) so ref is naturally in the viewport
     camPos = o.position.clone()
       .addScaledVector(toRef, -14)
       .addScaledVector(up, 5)
       .addScaledVector(right, 5);
   } else {
-    // Solo orb — pull camera back further so it isn't uncomfortably close
     camPos = o.position.clone().add(new THREE.Vector3(8, 10, 32));
   }
 
@@ -1449,7 +1821,6 @@ function showPanel(d, prev, next, pos, total) {
   document.getElementById('p-body').innerHTML = h;
   document.getElementById('p-body').scrollTop = 0;
 
-  // Nav footer
   const navEl = document.getElementById('p-nav');
   const posLabel = (pos !== undefined && total !== undefined) ? (pos + 1) + ' / ' + total : '';
   navEl.innerHTML =
@@ -1476,8 +1847,9 @@ function closePanel() {
       m.material.uniforms.uSelected.value = 0.0;
   });
   glows.forEach(s => { s.material.opacity = s.userData.baseOp; });
-  // Restore filter-aware brightness (active = full, inactive = dimmed)
   refreshVisibility();
+  // Re-enable drift if on "all"
+  if (activeF === 'all') autoDrift = true;
 }
 
 // ════════════════════════════════════════════════════════
@@ -1486,16 +1858,12 @@ function closePanel() {
 function buildSideNav(category, btnEl) {
   const nav = document.getElementById('sidenav');
   const cc  = CC[category].hex;
-
-  // Position centred under the hovered button
   if (btnEl) {
     const r = btnEl.getBoundingClientRect();
     nav.style.left      = Math.round(r.left + r.width / 2) + 'px';
     nav.style.top       = Math.round(r.bottom + 10) + 'px';
     nav.style.transform = 'translateX(-50%)';
   }
-
-  // Sort oldest→newest (matching getAdjacentMeshes), then reverse so newest is at top
   const pool = meshes.filter(m => m.userData.category === category);
   const sorted = (category === 'experience' || category === 'education')
     ? pool.slice().sort((a, b) => (a.userData._startYear || 0) - (b.userData._startYear || 0)).reverse()
@@ -1514,8 +1882,6 @@ function buildSideNav(category, btnEl) {
     el.addEventListener('click', () => {
       const target = meshes[parseInt(el.dataset.idx)];
       if (!target) return;
-      // If a category filter is hiding this orb, silently reset to show all
-      // (don't call applyFilter as that flies camera away and closes the panel)
       if (!target.visible) {
         activeF = 'all';
         document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
@@ -1547,15 +1913,12 @@ function updateSideNavActive(idx) {
 }
 
 function hideSideNav() {
-  const nav = document.getElementById('sidenav');
-  nav.classList.remove('open');
+  document.getElementById('sidenav').classList.remove('open');
 }
 
 // ════════════════════════════════════════════════════════
-//  VISIBILITY / BRIGHTNESS — shared helper
+//  VISIBILITY
 // ════════════════════════════════════════════════════════
-// Keeps all orbs rendered but dims orbs outside the active filter.
-// Call whenever the filter changes or a panel closes.
 function refreshVisibility() {
   meshes.forEach((m, i) => {
     const isActive = activeF === 'all' || m.userData.category === activeF;
@@ -1581,6 +1944,7 @@ function applyFilter() {
   refreshVisibility();
 
   if (activeF !== 'all') {
+    autoDrift = false;
     const cm = meshes.filter(m => m.userData.category === activeF);
     if (cm.length) {
       const c = new THREE.Vector3();
@@ -1589,6 +1953,7 @@ function applyFilter() {
       flyTo(c.clone().add(new THREE.Vector3(0, 15, 55)), c);
     }
   } else {
+    autoDrift = true;
     flyHome();
   }
 }
@@ -1601,8 +1966,6 @@ function flyTo(cp, lt) {
 }
 
 function flyHome() {
-  // Mobile: high overhead angled view — dist≈175, phi≈0.38 (~22° from straight down)
-  // Desktop: lower, wider view
   flyTo(isMobile ? new THREE.Vector3(0, 168, 62) : new THREE.Vector3(0, 50, 140), new THREE.Vector3(0, 0, 0));
 }
 
@@ -1615,13 +1978,13 @@ function processFly() {
   cam.lookAt(ct);
 
   if (flyA.t >= 1) {
-    // Sync orbit state to final position
     orbit.tx = flyA.tt.x; orbit.ty = flyA.tt.y; orbit.tz = flyA.tt.z;
     const dx = cam.position.x - orbit.tx;
     const dy = cam.position.y - orbit.ty;
     const dz = cam.position.z - orbit.tz;
     orbit.dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
     orbit.phi = Math.acos(Math.max(-1, Math.min(1, dy / orbit.dist)));
+    driftBasePhi = orbit.phi;
     orbit.theta = Math.atan2(dx, dz);
     flyA = null;
   }
@@ -1630,11 +1993,24 @@ function processFly() {
 // ════════════════════════════════════════════════════════
 //  RENDER LOOP
 // ════════════════════════════════════════════════════════
+let lastTime = performance.now();
+
 function tick() {
   requestAnimationFrame(tick);
-  const t = performance.now() * 0.001;
+  const now = performance.now();
+  const dt = (now - lastTime) * 0.001;
+  lastTime = now;
+  const t = now * 0.001;
 
   processFly();
+
+  // Auto-drift: very slow 360° rotation when idle on "all"
+  if (autoDrift && !flyA && !isDrag && !sel) {
+    orbit.theta += driftSpeed;
+    // Very gentle vertical oscillation
+    orbit.phi = driftBasePhi + Math.sin(t * 0.02) * 0.03;
+  }
+
   if (!flyA) camFromOrbit();
 
   // Animate nodes
@@ -1659,7 +2035,7 @@ function tick() {
     if (isTouchDevice && hitMeshes[i]) hitMeshes[i].position.copy(m.position);
   });
 
-  // Update chronological experience line endpoints to track floating orbs
+  // Update line endpoints
   lines.forEach(l => {
     if (!l.userData.chronological) return;
     const mA = meshes[l.userData.fromIdx];
@@ -1671,17 +2047,16 @@ function tick() {
     pos.needsUpdate = true;
   });
 
+  // Update shooting stars
+  updateShootingStars(dt);
+
   ren.render(scene, cam);
 }
 
 // ════════════════════════════════════════════════════════
 //  START
 // ════════════════════════════════════════════════════════
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
-} else {
-  boot();
-}
+window.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
 </html>
