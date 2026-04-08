@@ -35,8 +35,10 @@ html, body {
   font-family: var(--body);
   -webkit-font-smoothing: antialiased;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
-canvas { display: block; touch-action: none; }
+canvas { display: block; touch-action: none; outline: none; }
 
 /* LOADER */
 #loader {
@@ -93,6 +95,8 @@ canvas { display: block; touch-action: none; }
   border: 1px solid var(--border); background: rgba(255,255,255,0.02);
   color: var(--text-muted); transition: all 0.25s ease;
   backdrop-filter: blur(10px);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .fbtn:hover { border-color: var(--border-hover); color: var(--text); }
 .fbtn.on { background: rgba(255,255,255,0.06); color: var(--text-bright); border-color: rgba(255,255,255,0.15); }
@@ -101,6 +105,37 @@ canvas { display: block; touch-action: none; }
 .fbtn[data-c="skills"].on { color: var(--skills); border-color: var(--skills); }
 .fbtn[data-c="education"].on { color: var(--education); border-color: var(--education); }
 .fbtn[data-c="about"].on { color: var(--about); border-color: var(--about); }
+
+/* FILTER DROPDOWN (sidenav style) */
+#sidenav {
+  position: fixed; z-index: 50;
+  overflow: visible;
+  padding: 0.6rem 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px;
+  backdrop-filter: blur(40px) saturate(1.3);
+  width: 200px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.18s ease, width 0.22s ease;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.55);
+}
+#sidenav.open { opacity: 1; pointer-events: auto; }
+#sidenav:hover { width: 340px; }
+.sn-label {
+  font-family: var(--mono); font-size: 0.58rem; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 0 1.25rem 0.6rem; display: block; white-space: nowrap;
+}
+.sn-item {
+  font-family: var(--body); font-size: 0.72rem; font-weight: 400;
+  color: var(--text-muted); padding: 9px 1.5rem 9px 1.25rem;
+  cursor: pointer; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 100%;
+  border-left: 2px solid transparent;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.sn-item:hover { color: var(--text); background: rgba(255,255,255,0.03); border-color: var(--sn-cc, var(--text-muted)); }
+.sn-item.sn-active { font-weight: 500; }
 
 /* TOOLTIP */
 #tip {
@@ -130,11 +165,13 @@ canvas { display: block; touch-action: none; }
   flex-shrink: 0;
 }
 .pclose {
-  width: 30px; height: 30px; border-radius: 50%;
+  width: 36px; height: 36px; border-radius: 50%;
   border: 1px solid var(--border); background: transparent;
   color: var(--text-muted); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.9rem; transition: all 0.2s; flex-shrink: 0;
+  font-size: 1.1rem; transition: all 0.2s; flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .pclose:hover { background: rgba(255,255,255,0.04); color: var(--text-bright); }
 .pcat {
@@ -147,10 +184,11 @@ canvas { display: block; touch-action: none; }
   font-weight: 500; line-height: 1.25; color: var(--text-bright);
   margin-bottom: 0.25rem;
 }
-.psub { font-size: 0.82rem; color: var(--text-muted);padding-bottom: 5%; }
+.psub { font-size: 0.82rem; color: var(--text-muted); padding-bottom: 5%; }
 .pbody {
   padding: 1.6rem 2rem 2.5rem;
   overflow-y: auto; flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
 .pbody::-webkit-scrollbar { width: 3px; }
 .pbody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
@@ -180,6 +218,7 @@ canvas { display: block; touch-action: none; }
   font-size: 0.8rem; text-decoration: none;
   display: inline-flex; align-items: center; gap: 6px;
   transition: opacity 0.2s;
+  padding: 4px 0;
 }
 .plnk:hover { opacity: 0.65; }
 .plnk::before { content: '\2192'; }
@@ -200,6 +239,8 @@ canvas { display: block; touch-action: none; }
   backdrop-filter: blur(10px); color: var(--text-muted);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   font-size: 1rem; transition: all 0.2s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .nbtn:hover { background: rgba(255,255,255,0.06); color: var(--text-bright); }
 .hint {
@@ -215,6 +256,32 @@ canvas { display: block; touch-action: none; }
   transition: color 0.4s ease; white-space: nowrap;
 }
 #enter-hint.visible { color: rgba(255,240,210,0.8); }
+
+/* BOTTOM CLICK-TO-ENTER HINT */
+#click-hint {
+  position: fixed; bottom: 2.2rem; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+  pointer-events: none; z-index: 15;
+  opacity: 0; transition: opacity 1s ease;
+}
+#click-hint.visible { opacity: 1; }
+#click-hint.fade-out { opacity: 0; transition: opacity 0.4s ease; }
+.click-hint-text {
+  font-family: 'Courier New', monospace; font-size: 0.65rem;
+  letter-spacing: 0.25em; text-transform: uppercase;
+  color: rgba(255,240,210,0.55);
+  text-shadow: 0 0 12px rgba(255,180,80,0.3);
+  animation: ch-pulse 2.8s ease-in-out infinite;
+}
+.click-hint-arrow {
+  width: 1px; height: 18px;
+  background: linear-gradient(to bottom, rgba(255,210,120,0.5), rgba(255,210,120,0));
+  animation: ch-pulse 2.8s ease-in-out infinite;
+}
+@keyframes ch-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
 
 /* TRANSITION OVERLAY */
 #transition-overlay {
@@ -234,8 +301,11 @@ canvas { display: block; touch-action: none; }
   border: 1px solid var(--border); background: rgba(255,255,255,0.02);
   color: var(--text-muted); cursor: pointer; transition: all 0.2s;
   display: flex; align-items: center; gap: 5px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 36px;
 }
-.pnavbtn:not(:disabled):hover { background: rgba(255,255,255,0.06); color: var(--text-bright); border-color: var(--border-hover); }
+.pnavbtn:not(:disabled):hover { background: rgba(255,255,255,0.05); filter: brightness(1.3); }
 .pnavbtn:disabled { opacity: 0.22; cursor: default; }
 .pnavpos { font-family: var(--mono); font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.08em; }
 
@@ -249,6 +319,7 @@ canvas { display: block; touch-action: none; }
   border-radius: 12px; backdrop-filter: blur(40px) saturate(1.3);
   opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.96);
   transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-overflow-scrolling: touch;
 }
 #settings-panel::-webkit-scrollbar { width: 3px; }
 #settings-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
@@ -266,6 +337,7 @@ canvas { display: block; touch-action: none; }
   border: 2px solid transparent; transition: all 0.2s;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden; position: relative;
+  touch-action: manipulation;
 }
 .palette-swatch:hover { border-color: rgba(255,255,255,0.2); transform: scale(1.05); }
 .palette-swatch.active { border-color: var(--text-bright); }
@@ -279,18 +351,21 @@ canvas { display: block; touch-action: none; }
 }
 .color-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .color-chip {
-  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
   border: 2px solid transparent; transition: all 0.2s; flex-shrink: 0;
+  touch-action: manipulation;
 }
 .color-chip:hover { transform: scale(1.15); }
 .color-chip.active { border-color: var(--text-bright); }
 .drift-speed-row { display: flex; gap: 4px; }
 .drift-speed-btn {
-  flex: 1; padding: 5px 0; border-radius: 6px; cursor: pointer;
+  flex: 1; padding: 8px 0; border-radius: 6px; cursor: pointer;
   font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--text-muted);
   border: 1px solid var(--border); background: rgba(255,255,255,0.01);
   transition: all 0.2s; text-align: center;
+  touch-action: manipulation;
+  min-height: 36px;
 }
 .drift-speed-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); border-color: var(--border-hover); }
 .drift-speed-btn.active { color: var(--text-bright); border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); }
@@ -315,18 +390,80 @@ canvas { display: block; touch-action: none; }
   justify-content: center;
 }
 
+/* ═══════════════════════════════════════════
+   MOBILE RESPONSIVE
+   ═══════════════════════════════════════════ */
 @media (max-width: 640px) {
-  #panel { width: 100vw; max-width: 100vw; }
-  #filters { top: auto; bottom: 5rem; left: 0.75rem; right: 0.75rem; transform: none; }
-  #topbar, #bbar { padding: 1rem; }
+  #panel { width: 100vw; max-width: 100vw; min-width: unset; }
+  
+  #topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.8rem 1rem;
+    padding-top: max(0.8rem, env(safe-area-inset-top));
+    gap: 0.25rem;
+  }
+  #topbar > div:last-child { font-size: 0.6rem; }
+  .brand { font-size: 1.1rem; }
+
+  #filters {
+    top: auto;
+    bottom: 4.5rem;
+    left: 0;
+    right: 0;
+    padding: 0 0.5rem;
+    transform: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 3px;
+  }
+  #filters::-webkit-scrollbar { display: none; }
+  #filters.panel-open {
+    left: 0; right: 0; transform: none; padding: 0 0.5rem;
+  }
+  .fbtn {
+    font-size: clamp(0.44rem, 1.85vw, 0.6rem);
+    padding: 8px clamp(8px, 2.2vw, 14px);
+    letter-spacing: 0.02em;
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    min-height: 36px;
+  }
+
   .ph { padding: 1.2rem 1rem 0; }
   .ptitle { font-size: 1.3rem; }
   .pbody { padding: 1rem 1rem 2rem; }
   .pmeta { grid-template-columns: 1fr; }
   .ptag { font-size: 0.58rem; padding: 3px 8px; }
-  #bbar { padding: 0.6rem 1rem; }
+  .pclose { width: 42px; height: 42px; font-size: 1.3rem; }
+  .pnavbtn { padding: 10px 18px; font-size: 0.65rem; min-height: 40px; }
+
+  #bbar {
+    padding: 0.6rem 1rem;
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
+  }
   .hint { display: none; }
-  .nbtn { width: 42px; height: 42px; }
+  .nbtn { width: 44px; height: 44px; font-size: 1.15rem; }
+
+  #sidenav { display: none; }
+  #settings-panel { bottom: 3.5rem; left: 1rem; width: 230px; }
+
+  .plnk { padding: 8px 0; font-size: 0.85rem; }
+  .color-chip { width: 32px; height: 32px; }
+}
+
+/* Extra small screens */
+@media (max-width: 380px) {
+  .fbtn {
+    font-size: 0.42rem;
+    padding: 7px 6px;
+  }
+  .ptitle { font-size: 1.1rem; }
+  .nbtn { width: 40px; height: 40px; }
 }
 </style>
 </head>
@@ -340,6 +477,10 @@ canvas { display: block; touch-action: none; }
 <div id="scene-container"></div>
 <div id="tip"></div>
 <div id="enter-hint">enter</div>
+<div id="click-hint">
+  <div class="click-hint-text">tap to enter</div>
+  <div class="click-hint-arrow"></div>
+</div>
 <div id="transition-overlay"></div>
 
 <div id="topbar">
@@ -355,6 +496,7 @@ canvas { display: block; touch-action: none; }
   <button class="fbtn" data-c="portfolio">Portfolio</button>
   <button class="fbtn" data-c="skills">Skills</button>
 </div>
+<div id="sidenav"></div>
 
 <div id="panel">
   <div class="ph">
@@ -413,6 +555,7 @@ canvas { display: block; touch-action: none; }
 <script type="module">
 import * as THREE from 'three';
 THREE.ColorManagement.enabled = false;
+
 // ════════════════════════════════════════════════════════
 //  RESUME DATA
 // ════════════════════════════════════════════════════════
@@ -431,9 +574,6 @@ const RESUME = {
     { title: "Certified Scrum Master (CSM)", subtitle: "Professional Certification", desc: "Experienced in aligning cross-functional teams around shared goals to deliver high-impact solutions. Primarily focused on creating adaptive, high-performing teams that thrive in fast-paced environments, combined with strategic planning and hands-on facilitation to deliver quality products on time and within scope.", tags: ["Servant Leadership","Sprint Planning", "Daily Stand-ups","Retrospectives", "Backlog Grooming", "Impediment Removal", "Velocity Tracking", "Capacity Planning", "Conflict Resolution", "Stakeholder Management","Change Management", "Cross-Functional Team Leadership","Burn-down Charts","Velocity Tracking", "Scrum Ceremonies"],
     meta: { Year:"2022-2024"}, links: [{ label: "Certification", url: "https://bcert.me/seycffidc" },{ label: "What is this?", url: "https://www.scrumalliance.org/get-certified/scrum-master-track/certified-scrummaster" }
     ]},
-    // { title: "Post University Eductation: Self Study", subtitle: "Continued Educational Paths", desc: "I am a lifelong learner with a growth mindset, meaning I believe that intelligence and abilities can be developed through effort, learning, and persistence as I am naturally curious and have a love for learning.", tags: ["Servant Leadership","Sprint Planning", "Daily Stand-ups","Retrospectives", "Backlog Grooming", "Impediment Removal", "Velocity Tracking", "Capacity Planning", "Conflict Resolution", "Stakeholder Management","Change Management", "Cross-Functional Team Leadership","Burn-down Charts","Velocity Tracking", "Scrum Ceremonies"],
-    // meta: { links: [{ label: "Certification:", url: "" },{ label: "What is this?", url: "" },{ label: "Certification:", url: "" },{ label: "What is this?", url: "" }
-    // ]}
 ],
 experience: [
 {
@@ -448,24 +588,7 @@ title: "AI Consultant: Digital Product Owner / GenAI Delivery Manager",
     title: "Senior Innovation Product Owner / Product Manager",
     subtitle: "Forvis Mazars US",
     desc: "Led innovation-driven products across AI, immersive technology, client facing solutions, and internal software experiences, translating emerging capabilities into production grade software, practical product experiments, workflow improvements, and adoption strategies. Combined product strategy, facilitation, and technical fluency to shape new concepts, align stakeholders, and support globally distributed teams.\n\nPiloted immersive workshop formats in Arthur VR for global innovation teams, integrating tools such as Miro and applying AI-enabled workflows to improve ideation, collaboration, and early concept validation across dispersed groups. Researched and tested GenAI, ML, blockchain, and XR/VR/AR use cases to identify practical opportunities for productivity gains, knowledge-sharing, and new product experiences.\n\nEstablished practices, guides, and OKRs that contributed to a 22% increase in feature adoption and a 10% increase in UX satisfaction on the ProBank Advisor platform, while averaging a 98.7% sprint completion rate and mentoring a team of product owners.\n\nLed definition and design of a dynamic investment and business valuation tool to streamline internal audit processes, along with a PCI compliance tool projected to reduce manual effort by up to 20 hours per engagement (~15% time savings). Also led AI workshops on prompt engineering and Microsoft Copilot best practices, and reimagined a blockchain knowledge resource that expanded from 22 to 350+ entries through AI-assisted research and content design.",
-    // tags: ["Product Strategy", "Figma", "Azure DevOps", "GenAI", "Blockchain", "Pendo", "SQL", "Tableau", "Scrum", "XR/VR/AR", "Miro","Workshop Facilitation","Stakeholder Mgmt","A/B Testing"],
-    tags: [  "0→1 Product",
-    "Product Strategy",
-    "AI Product",
-    "GenAI",
-    "Copilot",
-    "XR/VR Collaboration",
-    "Immersive Workshops",
-    "Miro",
-    "Figma",
-    "Azure DevOps",
-    "Pendo",
-    "SQL",
-    "Scrum",
-    "Workshop Facilitation",
-    "Stakeholder Management",
-    "Blockchain",
-    "A/B Testing"],
+    tags: [  "0→1 Product", "Product Strategy", "AI Product", "GenAI", "Copilot", "XR/VR Collaboration", "Immersive Workshops", "Miro", "Figma", "Azure DevOps", "Pendo", "SQL", "Scrum", "Workshop Facilitation", "Stakeholder Management", "Blockchain", "A/B Testing"],
     meta: { Period: "Sep 2023 — April 2025", Location: "Virtual, NC", Type: "Full-time", Industry: "Professional Services" },
     links: [{ label: "Forvis Mazars", url: "https://www.forvismazars.com" },{ label: "Forvis Mazars launches ProBank Advisor", url: "https://www.forvismazars.us/about-us/newsroom/news-releases/forvis-mazars-launches-probank-advisor" },{ label: "About ProBank Advisor", url: "https://www.forvismazars.us/services/products/probank-advisor" }]
   },
@@ -555,33 +678,10 @@ title: "AI Consultant: Digital Product Owner / GenAI Delivery Manager",
 ],
    
 skills: [
-
-// { title: "Fullstack Development", subtitle: "Product Focused Developer", desc: "Hands-on builder with working experience across frontend, backend, APIs, databases, and deployment workflows. Use code to prototype product ideas quickly, collaborate more effectively with engineers, and validate concepts through lightweight working experiences rather than static documentation alone.", tags: ["Frontend","Backend","Python","SQL","C","PHP","APIs","PostgreSQL","Web Hosting","MySpace"], links: [{label:"Completed: The Complete Web Developer Bootcamp",url:"https://www.udemy.com/certificate/UC-4a0a783b-e697-4276-9f8c-590b0ab90855/"}] },
-// { title: "Frontend Development", subtitle: "Developing faster than ever. Core Dev Focus", desc: "Deep expertise in modern frontend frameworks and tooling. Focus on performance, accessibility, and delightful user experiences with smooth animations.", tags: ["React","TypeScript","Next.js","Vue","Tailwind CSS","Three.js","GSAP","Framer Motion"] },
-// { title: "Product Adoption & Analytics", subtitle: "Pendo Admin", desc: "Will update later. See experience section for more info.", tags: ["Pendo","User Behavior","A/B Testing","User Guides","User Retention", "Stickiness","Product Metrics"], links: [{label: "Pendo Admin", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url"}, {label:"Pendo Essentials for Web", url: "https://www.credly.com/badges/0f7c8eec-0e7d-4f23-82f7-8a4d362eda2b/public_url"}] },
-// { title: "Product Management", subtitle: "Current Professional Focus", desc: "Have a passion for building software that users love and need. I love working with development teams and am always curious about how things are built, and how we can improve them.", tags: ["Agile","Scrum","Kanban","Cross-functional Collaboration","Requirement Gathering","Prototyping","Product Roadmaps","Portfolio Management","Product Backlog", "Stakeholder Management"], links: {label:"Certification: AI for Product Management", url:"https://www.credly.com/badges/7c66f10a-8f2e-48a1-b1da-0d3d972b6929/public_url"} },
-// { title: "Winter Sports", subtitle: "Passion & Hobby", desc: "I have always loved the snow, but I fell in love with skiing in 2014 while in college at App State. I was fortunate enough to learn both informally from a 12 year old ski wizard, and formally through an intermediate ski class for a credit in physical education.", tags: ["Pizza","French Fry","Armada Skis","Twin Tips","when_Japan?"] },
-// { title: "Golf", subtitle: "Passion & Hobby", desc: "Being a lifelong athelete in adulthood, I am glad I started playing Golf in 2022. I truly enjoy the excuse to get outside with people I care about and enjoy nature. I push myself to play at least once a week when possible, if not more. Working on some golf ideas...", tags: ["Lefty","Handicap = 17.8"] },
-// { title: "Music Production & Audio Engineering", subtitle: "Passion & Hobby", desc: "Born into the world of radio and DJing, I have the following experience: \n-20+ years: Drums & Percussion\n-6+ years: Music Production\n-2+ years: Casual DJ", links: [{label:"Book Me",url:"https://philrich.live"}], tags: ["Drums","Music Production","Music Lessons","DJ your wedding","Cats love it"] },
-// { title: "Natural Farming", subtitle: "Passion & Hobby", desc: "I've been gardening since 2020, and I started a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants(1250 starter plants in 2024), will grow upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.", tags: ["Soil & Plant Biology","Chemistry","JADAM","Korean Natural Farming (KNF)","Organic Inputs","HOT Peppers"], links: [{label: "Website Under Construction", url: "https://www.bluerocknurseries.com/"}, {label:"Instagram", url: "https://www.instagram.com/bluerocknurseries/"}] },
-{ title: "Data Analytics", subtitle: "Product-focused Business and Data Analyst", desc: "Blend analytical rigor with product thinking to turn data into decisions. Experience working with Regulatory and adhoc reporting, Excel, SQL, Python, Tableau, business intelligence, and data modeling to support business decisions and product strategy, operational visibility, experimentation, and stakeholder communication.", tags: ["SQL","Python","Business Intelligence","Reporting","Excel","Data Modeling","Data Engineering","Data pipelines"], links: [{label: "The Complete SQL Bootcamp 2022: Go from Zero to Hero", url: "https://www.udemy.com/certificate/UC-dff15609-d389-4656-8228-c6a1d0104135/"}, {label:"In Progress: Python for Finance: Investment Fundamentals & Data Analytics", url: "https://www.udemy.com/course/python-for-finance-investment-fundamentals-data-analytics/"}] },
+{ title: "Data Analytics", subtitle: "Product-focused Business and Data Analyst", desc: "Blend analytical rigor with product thinking to turn data into decisions. Experience working with Regulatory and adhoc reporting, Excel, SQL, Python, Tableau, business intelligence, and data modeling to support business decisions and product strategy, operational visibility, experimentation, and stakeholder communication.", tags: ["SQL","Python","Business Intelligence","Reporting","Excel","Data Modeling","Data Engineering","Data pipelines"], 
+links: [{label:"In Progress: Python for Finance: Investment Fundamentals & Data Analytics", url: "https://www.udemy.com/course/python-for-finance-investment-fundamentals-data-analytics/"},{label: "Completed: The Complete SQL Bootcamp 2022: Go from Zero to Hero", url: "https://www.udemy.com/certificate/UC-dff15609-d389-4656-8228-c6a1d0104135/"}] },
 { title: "Design & UX", subtitle: "User-Centered Design", desc: "Design and prototype thoughtful user experiences, creating seamless UX across product, interaction, and interface layers. Strong interest in translating complex ideas into intuitive and engaging user journeys, including VR, 3D, and spatial design." ,
-tags: [
-"Figma",
-    "Miro",
-    "Wireframing",
-    "Prototyping",
-    "Interaction Design",
-    "User Research",
-    "Usability Testing",
-    "Design Systems",
-    "Accessibility",
-    "Information Architecture",
-    "Spatial UX",
-    "3D Interaction Design",
-    "Immersive Experiences",
-    "Workshop Facilitation",
-],
+tags: ["Figma","Miro","Wireframing","Prototyping","Interaction Design","User Research","Usability Testing","Design Systems","Accessibility","Information Architecture","Spatial UX","3D Interaction Design","Immersive Experiences","Workshop Facilitation"],
 links: [
 { label: "In Progress: User Experience & Interaction Design for AR/VR/MR/XR", url: "https://www.coursera.org/learn/user-experience-interaction-design-augmented-virtual-mixed-extended-reality" },
 { label: "In Progress: Learn 3D Animation - The Ultimate Blender A-Z Guide", url: "https://www.udemy.com/course/blendercourse/" },
@@ -591,24 +691,7 @@ links: [
     { title: "Frontend Engineering & Product Prototyping",
   subtitle: "Interactive 3D / Fullstack Builder",
   desc: "Build modern, consumer-facing digital experiences with a strong emphasis on frontend interaction, usability, motion, and rapid product prototyping. Particularly focused on technically rich experiences at the intersection of AI, 3D, spatial computing, and immersive web interfaces, with hands-on capability across modern frontend frameworks as well as the APIs, backend logic, and data flows needed to support end-to-end product development. Use code as a practical tool to explore new concepts, validate workflows, and collaborate effectively with engineering teams in early-stage, experimentation-heavy environments.",
-  tags: [
-    "React",
-    "TypeScript",
-    "Next.js",
-    "JavaScript",
-    "Three.js",
-    "WebXR",
-    "Tailwind CSS",
-    "GSAP",
-    "Framer Motion",
-    "APIs",
-    "Python",
-    "SQL",
-    "PostgreSQL",
-    "Backend Logic",
-    "Interactive Prototyping",
-    "Spatial UX"
-  ],
+  tags: ["React","TypeScript","Next.js","JavaScript","Three.js","WebXR","Tailwind CSS","GSAP","Framer Motion","APIs","Python","SQL","PostgreSQL","Backend Logic","Interactive Prototyping","Spatial UX"],
   links: [
     { label: "In Progress: Learn 3D Animation - The Ultimate Blender A-Z Guide", url: "https://www.udemy.com/course/blendercourse/" },
     { label: "Completed: Learn to create WebXR, VR and AR, experiences using Three.JS", url: "https://www.udemy.com/certificate/UC-0f1fc2db-2760-41cd-a308-cf8b64d2e8b3/" },
@@ -630,23 +713,7 @@ links: [
   title: "Product Management",
   subtitle: "0→1 Product Leadership",
   desc: "Product leader experienced in shaping ambiguous opportunities into clear, testable product strategies and scalable software solutions. Experienced in product strategy, cross-functional collaboration, requirement gathering, backlog prioritization, prototyping, sprint execution, translating complex technical concepts into aligned stakeholder action, and more. Also skilled in leveraging product adoption and behavioral analytics to improve feature discovery, user engagement, retention, and product performance. Particularly focused on AI-enabled, data-informed, and/or emerging 3D/spatial product experiences.",
-  tags: [
-    "Agile",
-    "Scrum",
-    "Kanban",
-    "Cross-functional Collaboration",
-    "Requirement Gathering",
-    "Wireframing",
-    "Prototyping",
-    "Product Roadmaps",
-    "Product Backlog",
-    "Stakeholder Management",
-    "Pendo",
-    "User Behavior",
-    "A/B Testing",
-    "User Retention",
-    "Product Metrics"
-  ],
+  tags: ["Agile","Scrum","Kanban","Cross-functional Collaboration","Requirement Gathering","Wireframing","Prototyping","Product Roadmaps","Product Backlog","Stakeholder Management","Pendo","User Behavior","A/B Testing","User Retention","Product Metrics"],
   links: [
     { label: "In Progress: AI Product Management Specialization (Duke via Coursera)", url: "https://www.coursera.org/specializations/ai-product-management-duke" },
     { label: "Completed: Pendo AI for Product Management", url: "https://www.credly.com/badges/7c66f10a-8f2e-48a1-b1da-0d3d972b6929/public_url" },
@@ -654,7 +721,6 @@ links: [
     { label: "Completed: Pendo Essentials for Web", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url" }
   ]
 }
-
 ]
 };
 
@@ -684,7 +750,6 @@ function getStartYear(item, cat) {
   return null;
 }
 
-// Layout: place orbs in space
 const CAT_CENTERS = {};
 const GOLDEN_ANG = Math.PI * (3 - Math.sqrt(5));
 const HELIX_R = 9;
@@ -751,7 +816,7 @@ CATS.forEach((cat, ci) => {
 })();
 
 // ============================================================
-//  SIMPLEX NOISE (GLSL) - shared by outer nebula + inner orbs
+//  SIMPLEX NOISE (GLSL)
 // ============================================================
 const NOISE_GLSL = `
 vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
@@ -816,7 +881,7 @@ float fbm5(vec3 p){
 `;
 
 // ============================================================
-//  INNER ORB NEBULA SHADER (mini nebulae per resume item)
+//  INNER ORB NEBULA SHADER
 // ============================================================
 const INNER_ORB_VERT = `
 uniform float uTime;
@@ -828,11 +893,9 @@ ${NOISE_GLSL}
 void main(){
   vNormal = normalize(normalMatrix * normal);
   vec3 pos = position;
-  // Organic deformation scaled to orb size
   float n = fbm(pos * 2.0 + uTime * 0.15);
   float n2 = fbm(pos * 3.5 + uTime * 0.1 + vec3(7.0));
   pos += normal * (n * 0.12 + n2 * 0.05) * uSize;
-  // Breathing
   pos *= 1.0 + sin(uTime * 0.4) * 0.015;
   vPosition = pos;
   vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
@@ -853,53 +916,33 @@ void main(){
   vec3 viewDir = normalize(uCameraPos - vWorldPos);
   float fresnel = 1.0 - abs(dot(viewDir, vNormal));
   fresnel = pow(fresnel, 2.0);
-
   vec3 p = vPosition * 2.5 + uTime * 0.08;
   float n1 = fbm(p);
   float n2 = fbm(p * 1.4 + vec3(5.2, 1.3, 2.8));
   float n3 = fbm(p * 0.6 + vec3(8.0) + uTime * 0.05);
-
-  // Category color as the warm rim/outer color
   vec3 warmColor = uColor;
   vec3 innerBlue = vec3(0.15, 0.2, 0.5);
   vec3 innerViolet = vec3(0.4, 0.25, 0.7);
-
-  // Radial zones
   float r = length(vPosition) / 1.6;
   float innerMask = 1.0 - smoothstep(0.0, 0.5, r);
   float outerMask = smoothstep(0.4, 0.85, r);
-
-  // Inner: blue-violet gas
   vec3 innerCol = mix(innerBlue, innerViolet, n1 * 0.5 + 0.5);
-
-  // Outer: category-colored rim
   vec3 outerCol = warmColor * (0.6 + n2 * 0.4);
-
   vec3 gasColor = innerCol * innerMask + mix(innerCol, outerCol, 0.6) * (1.0 - innerMask - outerMask) + outerCol * outerMask;
-
-  // Central star glow
   float coreDist = length(vPosition) / 1.6;
   float coreGlow = exp(-coreDist * coreDist * 20.0);
   float coreStar = exp(-coreDist * coreDist * 80.0);
   vec3 coreColor = vec3(1.0, 0.98, 0.92) * coreStar * 2.0
                  + vec3(0.7, 0.8, 1.0) * coreGlow * 0.8;
-
-  // Rim emission
   vec3 rimColor = warmColor * pow(fresnel, 2.5) * 0.5;
-
-  // Volumetric alpha
   float shellDensity = smoothstep(0.0, 0.3, r) * (1.0 - smoothstep(0.85, 1.0, r));
   float turbAlpha = 0.5 + fbm(vPosition * 3.0 + uTime * 0.1) * 0.4;
   float alpha = shellDensity * turbAlpha + innerMask * 0.15 + outerMask * 0.5;
   alpha += fresnel * 0.2;
   alpha = max(alpha, coreGlow * 0.8 + coreStar);
-
   vec3 col = gasColor * (0.5 + n1 * 0.3) + coreColor + rimColor;
-
-  // Selected: brighter, more saturated
   col *= uBrightness * (1.0 + uSelected * 0.5);
   alpha *= 1.0 + uSelected * 0.3;
-
   gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
 }`;
 
@@ -949,20 +992,15 @@ void main(){
   col = mix(col, deepOrange, smoothstep(0.05, 0.55, n2) * 0.75);
   col = mix(col, gold, smoothstep(0.25, 0.75, n1 + n2 * 0.5) * 0.5);
   col = mix(col, hotPink, smoothstep(0.35, 0.85, n3) * 0.3);
-  // Filaments
   float filaments = pow(max(0.0, snoise(vPosition * 6.0 + uTime * 0.1)), 5.0);
   col += vec3(1.0, 0.3, 0.05) * filaments * 0.4;
-  // SSS
   float sss = pow(max(0.0, dot(viewDir, vNormal)), 1.5);
   col += mix(deepOrange, gold, 0.5) * 0.15 * sss;
-  // Rim
   vec3 rimColor = mix(deepOrange, gold, sin(uTime * 0.2) * 0.5 + 0.5);
   col = mix(col, rimColor * 1.3, fresnel * 0.6);
-  // Alpha
   float alpha = fresnel * 0.8 + 0.1;
   alpha *= smoothstep(-0.25, 0.35, n1 * 0.5 + n2 * 0.5);
   alpha = clamp(alpha, 0.0, 0.85) * uOpacity;
-  // Wisps
   float wisps = pow(max(0.0, snoise(vPosition * 4.0 + uTime * 0.13)), 3.0);
   col += gold * wisps * 0.18;
   gl_FragColor = vec4(col, alpha);
@@ -972,20 +1010,20 @@ void main(){
 //  THREE.JS SCENE
 // ============================================================
 let scene, cam, ren, timer;
-let meshes = [], glows = [], hazes = [], lines = [], labels = [];
+let meshes = [], glows = [], lines = [], labels = [];
+let hitMeshes = [];  // enlarged invisible hit targets for touch
 let outerShellGroup;
 let activeF = 'all';
 let hov = null, sel = null;
+let snHideTimer = null;
 let flyA = null;
 
-// State: 'outer' (viewing nebula) | 'entering' (zoom transition) | 'inner' (resume view)
+// State: 'outer' | 'entering' | 'inner'
 let viewState = 'outer';
 let enterStart = 0;
 const ENTER_DURATION = 3.0;
 
-// Orbit for outer view
 const outerOrbit = { theta: 0, phi: Math.PI / 2, radius: 4.5 };
-// Orbit for inner view
 const innerOrbit = { theta: 0, phi: 1.227, dist: 149, tx: 0, ty: 0, tz: 0 };
 
 let isDrag = false, dragBtn = -1, px = 0, py = 0, downX = 0, downY = 0, downTime = 0;
@@ -998,15 +1036,17 @@ let driftBasePhi = 1.227;
 const rc = new THREE.Raycaster();
 const mp = new THREE.Vector2(9999, 9999);
 
-// Outer nebula click detection
 let outerClickTarget;
 let isHoveringOrb = false;
 let isMobile = false;
 let isTouchDevice = false;
 
+// Multi-touch pinch tracking
+const activePointers = new Map();
+let prevPinchDist = null;
+
 function easeInOutCubic(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
 
-// Camera helpers
 function outerCamFromOrbit() {
   cam.position.x = outerOrbit.radius * Math.sin(outerOrbit.phi) * Math.sin(outerOrbit.theta);
   cam.position.y = outerOrbit.radius * Math.cos(outerOrbit.phi);
@@ -1025,36 +1065,11 @@ function innerCamFromOrbit() {
 //  PALETTES & SETTINGS
 // ============================================================
 const PALETTES = {
-  default: {
-    name: 'Cosmic',
-    portfolio: '#e8764e', experience: '#a475d6', skills: '#4ab8c2',
-    education: '#5cc98e', about: '#e05577',
-    void: '#06060d',
-  },
-  neon: {
-    name: 'Neon',
-    portfolio: '#ff3e00', experience: '#d946ef', skills: '#00ff88',
-    education: '#facc15', about: '#ff006e',
-    void: '#05050a',
-  },
-  earth: {
-    name: 'Earth',
-    portfolio: '#d97706', experience: '#9f7aea', skills: '#5eead4',
-    education: '#a3e635', about: '#fb923c',
-    void: '#0d0b08',
-  },
-  midnight: {
-    name: 'Midnight',
-    portfolio: '#818cf8', experience: '#c084fc', skills: '#67e8f9',
-    education: '#6ee7b7', about: '#f9a8d4',
-    void: '#030318',
-  },
-  monochrome: {
-    name: 'Mono',
-    portfolio: '#e2e8f0', experience: '#cbd5e1', skills: '#94a3b8',
-    education: '#64748b', about: '#f1f5f9',
-    void: '#09090b',
-  },
+  default: { name: 'Cosmic', portfolio: '#e8764e', experience: '#a475d6', skills: '#4ab8c2', education: '#5cc98e', about: '#e05577', void: '#06060d' },
+  neon: { name: 'Neon', portfolio: '#ff3e00', experience: '#d946ef', skills: '#00ff88', education: '#facc15', about: '#ff006e', void: '#05050a' },
+  earth: { name: 'Earth', portfolio: '#d97706', experience: '#9f7aea', skills: '#5eead4', education: '#a3e635', about: '#fb923c', void: '#0d0b08' },
+  midnight: { name: 'Midnight', portfolio: '#818cf8', experience: '#c084fc', skills: '#67e8f9', education: '#6ee7b7', about: '#f9a8d4', void: '#030318' },
+  monochrome: { name: 'Mono', portfolio: '#e2e8f0', experience: '#cbd5e1', skills: '#94a3b8', education: '#64748b', about: '#f1f5f9', void: '#09090b' },
 };
 
 let currentPalette = 'default';
@@ -1063,12 +1078,9 @@ let currentStarColor = 'warm';
 let globalStarIntensity = 1.0;
 
 const SPACE_COLORS = [
-  { key: '#06060d', label: 'Void' },
-  { key: '#030318', label: 'Midnight' },
-  { key: '#020617', label: 'Deep Sea' },
-  { key: '#0c0604', label: 'Ember Dark' },
-  { key: '#060a06', label: 'Forest Night' },
-  { key: '#12001a', label: 'Nebula' },
+  { key: '#06060d', label: 'Void' }, { key: '#030318', label: 'Midnight' },
+  { key: '#020617', label: 'Deep Sea' }, { key: '#0c0604', label: 'Ember Dark' },
+  { key: '#060a06', label: 'Forest Night' }, { key: '#12001a', label: 'Nebula' },
   { key: '#000814', label: 'Abyss' },
 ];
 const spaceSwatchColors = {
@@ -1163,7 +1175,6 @@ function applyStarHex(hex) {
 }
 
 function buildSettingsUI() {
-  // Palettes
   const grid = document.getElementById('palette-grid');
   if (grid) {
     Object.entries(PALETTES).forEach(([key, p]) => {
@@ -1181,7 +1192,6 @@ function buildSettingsUI() {
       grid.appendChild(swatch);
     });
   }
-  // Space color chips
   const spaceList = document.getElementById('space-color-list');
   if (spaceList) {
     SPACE_COLORS.forEach(sc => {
@@ -1211,7 +1221,6 @@ function buildSettingsUI() {
       });
     }
   }
-  // Star color chips
   const starList = document.getElementById('star-color-list');
   if (starList) {
     STAR_COLORS.forEach(sc => {
@@ -1227,7 +1236,6 @@ function buildSettingsUI() {
       });
       starList.appendChild(chip);
     });
-    // Star custom hex input + native color picker
     const starHexInput = document.getElementById('star-hex-input');
     const starPicker = document.getElementById('star-color-picker');
     if (starHexInput) {
@@ -1249,14 +1257,13 @@ function buildSettingsUI() {
       });
     }
   }
-  // Drift speed
   const driftRow = document.getElementById('drift-speed-row');
   if (driftRow) {
     const driftSpeeds = [
-      { label: 'Off',    speed: 0,      enabled: false },
-      { label: 'Slow',   speed: 0.0001, enabled: true  },
-      { label: 'Normal', speed: 0.0003, enabled: true  },
-      { label: 'Fast',   speed: 0.0008, enabled: true  },
+      { label: 'Off', speed: 0, enabled: false },
+      { label: 'Slow', speed: 0.0001, enabled: true },
+      { label: 'Normal', speed: 0.0003, enabled: true },
+      { label: 'Fast', speed: 0.0008, enabled: true },
     ];
     function updateDriftBtns() {
       driftRow.querySelectorAll('.drift-speed-btn').forEach((btn, i) => {
@@ -1278,7 +1285,6 @@ function buildSettingsUI() {
     });
     updateDriftBtns();
   }
-  // Settings toggle
   const toggle = document.getElementById('settings-toggle');
   const panel = document.getElementById('settings-panel');
   if (toggle && panel) {
@@ -1296,15 +1302,22 @@ function boot() {
   isMobile = window.matchMedia('(max-width: 640px)').matches;
   isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
+  // Update hint text for touch devices
+  if (isTouchDevice) {
+    const hintText = document.querySelector('.click-hint-text');
+    if (hintText) hintText.textContent = 'tap to enter';
+  }
+
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x06060d);
 
   cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 600);
   outerCamFromOrbit();
 
-  ren = new THREE.WebGLRenderer({ antialias: true });
+  ren = new THREE.WebGLRenderer({ antialias: !isMobile });
   ren.setSize(innerWidth, innerHeight);
-  ren.setPixelRatio(Math.min(devicePixelRatio, 2));
+  // Cap pixel ratio: 2 for desktop, 1.5 for mobile to save GPU
+  ren.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
   ren.toneMapping = THREE.ACESFilmicToneMapping;
   ren.toneMappingExposure = 1.0;
   document.getElementById('scene-container').appendChild(ren.domElement);
@@ -1318,43 +1331,56 @@ function boot() {
   buildLines();
   buildLabels();
 
-  // Initially hide inner orbs
-  setInnerVisibility(false);
+  // Create enlarged hit targets for touch devices
+  if (isTouchDevice) {
+    meshes.forEach(m => {
+      const hitGeo = new THREE.SphereGeometry(m.userData.size * 2.0, 8, 8);
+      const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const hit = new THREE.Mesh(hitGeo, hitMat);
+      hit.position.copy(m.position);
+      hit.userData.idx = m.userData.idx;
+      scene.add(hit);
+      hitMeshes.push(hit);
+    });
+  }
 
+  setInnerVisibility(false);
   bindEvents();
   buildSettingsUI();
 
-  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 800);
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hidden');
+    setTimeout(() => document.getElementById('click-hint').classList.add('visible'), 600);
+  }, 800);
   tick();
 }
 
 // ============================================================
-//  OUTER NEBULA (the big gaseous bubble around everything)
+//  OUTER NEBULA
 // ============================================================
-let outerShellMat, outerShell2Mat, outerVolCoreMat, outerStarMat;
+let outerShellMat, outerShell2Mat, outerStarMat;
 let outerGlowSprite, outerGlowSpriteMat;
 
 function buildOuterNebula() {
   outerShellGroup = new THREE.Group();
   scene.add(outerShellGroup);
 
-  // Main shell
+  const shellSeg = isMobile ? 64 : 128;
+
   outerShellMat = new THREE.ShaderMaterial({
     vertexShader: OUTER_SHELL_VERT, fragmentShader: OUTER_SHELL_FRAG,
     uniforms: { uTime: {value:0}, uCameraPos: {value: cam.position.clone()}, uOpacity: {value:1.0} },
     transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending
   });
-  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.5, 128, 128), outerShellMat));
+  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.5, shellSeg, shellSeg), outerShellMat));
 
-  // Second layer
   outerShell2Mat = new THREE.ShaderMaterial({
     vertexShader: OUTER_SHELL_VERT, fragmentShader: OUTER_SHELL_FRAG,
     uniforms: { uTime: {value:0}, uCameraPos: {value: cam.position.clone()}, uOpacity: {value:1.0} },
     transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending
   });
-  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.25, 80, 80), outerShell2Mat));
+  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.25, isMobile ? 48 : 80, isMobile ? 48 : 80), outerShell2Mat));
 
-  // Central star
   const starFrag = `uniform vec3 uCameraPos; uniform float uTime;
 varying vec3 vNorm; varying vec3 vWP;
 void main(){
@@ -1375,7 +1401,6 @@ void main(){ vNorm = normalize(normalMatrix * normal); vWP = (modelMatrix * vec4
   });
   outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(0.07, 32, 32), outerStarMat));
 
-  // Glow sprite
   const gc = document.createElement('canvas');
   gc.width = 256; gc.height = 256;
   const gx = gc.getContext('2d');
@@ -1392,7 +1417,6 @@ void main(){ vNorm = normalize(normalMatrix * normal); vWP = (modelMatrix * vec4
   outerGlowSprite.scale.set(1.0, 1.0, 1);
   outerShellGroup.add(outerGlowSprite);
 
-  // Halo
   const hc = document.createElement('canvas');
   hc.width = 512; hc.height = 512;
   const hx = hc.getContext('2d');
@@ -1407,16 +1431,16 @@ void main(){ vNorm = normalize(normalMatrix * normal); vWP = (modelMatrix * vec4
   haloSprite.scale.set(6, 6, 1);
   outerShellGroup.add(haloSprite);
 
-  // Click target for entering
+  // Larger click target for touch
   outerClickTarget = new THREE.Mesh(
-    new THREE.SphereGeometry(0.6, 16, 16),
+    new THREE.SphereGeometry(isTouchDevice ? 1.2 : 0.6, 16, 16),
     new THREE.MeshBasicMaterial({ visible: false })
   );
   outerShellGroup.add(outerClickTarget);
 }
 
 // ============================================================
-//  STARS (background, shared by both views)
+//  STARS
 // ============================================================
 function buildStars() {
   function createStarTexture() {
@@ -1430,9 +1454,12 @@ function buildStars() {
     return new THREE.CanvasTexture(c);
   }
   const tex = createStarTexture();
+  // Reduce star count on mobile
+  const starCount1 = isMobile ? 2500 : 4000;
+  const starCount2 = isMobile ? 500 : 800;
   [
-    { count: 4000, spread: 500, size: 0.7 },
-    { count: 800, spread: 500, size: 1.4 },
+    { count: starCount1, spread: 500, size: 0.7 },
+    { count: starCount2, spread: 500, size: 1.4 },
   ].forEach(({ count, spread, size }) => {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
@@ -1457,12 +1484,11 @@ function buildStars() {
 }
 
 // ============================================================
-//  INNER ORBS (mini nebulae for each resume item)
+//  INNER ORBS
 // ============================================================
 function buildInnerOrbs() {
-  const SEG = isMobile ? 24 : 48;
+  const SEG = isMobile ? 20 : 48;
 
-  // Glow texture
   const gc = document.createElement('canvas');
   gc.width = 512; gc.height = 512;
   const gx = gc.getContext('2d');
@@ -1498,7 +1524,6 @@ function buildInnerOrbs() {
     scene.add(m);
     meshes.push(m);
 
-    // Glow sprite
     const glowOp = 0.05 + yf * 0.12;
     const sm = new THREE.SpriteMaterial({
       map: glowTex, color: CC[d.category].i, transparent: true,
@@ -1556,6 +1581,7 @@ function setInnerVisibility(visible) {
   });
   lines.forEach(l => l.visible = visible);
   labels.forEach(s => s.visible = visible);
+  if (isTouchDevice) hitMeshes.forEach(h => h.visible = visible);
 }
 
 // ============================================================
@@ -1566,13 +1592,13 @@ function startEnterTransition() {
   viewState = 'entering';
   enterStart = timer.getElapsed();
 
-  // Show inner orbs
   setInnerVisibility(true);
 
-  // Hide UI hints
   document.getElementById('enter-hint').classList.remove('visible');
+  const ch = document.getElementById('click-hint');
+  ch.classList.add('fade-out');
+  setTimeout(() => { ch.classList.remove('visible'); ch.classList.remove('fade-out'); }, 400);
 
-  // Target: inner home position
   if (isMobile) {
     innerOrbit.dist = 179; innerOrbit.phi = 0.357;
   } else {
@@ -1585,11 +1611,8 @@ function startEnterTransition() {
 function processEnterTransition(t) {
   const elapsed = t - enterStart;
   const progress = Math.min(elapsed / ENTER_DURATION, 1.0);
-  // Use easeInCubic for a fast initial rush
-  const easedIn = progress * progress * progress;
   const eased = easeInOutCubic(progress);
 
-  // Interpolate camera from outer orbit to inner orbit position
   const outerPos = new THREE.Vector3(
     outerOrbit.radius * Math.sin(outerOrbit.phi) * Math.sin(outerOrbit.theta),
     outerOrbit.radius * Math.cos(outerOrbit.phi),
@@ -1607,7 +1630,6 @@ function processEnterTransition(t) {
   const lookTarget = new THREE.Vector3().lerpVectors(outerLook, innerLook, eased);
   cam.lookAt(lookTarget);
 
-  // Zoom through shell: shrink outer nebula radius OR fade it out
   if (outerShellMat) {
     const shellOpacity = 1.0 - eased;
     outerShellMat.uniforms.uOpacity.value = shellOpacity;
@@ -1615,16 +1637,13 @@ function processEnterTransition(t) {
     outerShellGroup.visible = shellOpacity > 0.01;
   }
 
-  // FOV warp — wide rush at the start, then settle
   const fovWarp = Math.sin(progress * Math.PI) * 35;
   cam.fov = 55 + fovWarp;
   cam.updateProjectionMatrix();
 
-  // Dramatic exposure ramp: flash bright at peak like a supernova burst
   const exposureWarp = 1.0 + Math.sin(progress * Math.PI) * 5.0;
   ren.toneMappingExposure = exposureWarp;
 
-  // Star vibrance: stars gain energy and brilliance during entry
   const starBoost = 1.0 + Math.sin(progress * Math.PI) * 4.0;
   starLayers.forEach(({ points, baseColors, count }) => {
     const colors = points.geometry.attributes.color.array;
@@ -1643,7 +1662,6 @@ function processEnterTransition(t) {
     ren.toneMappingExposure = 1.0;
     outerShellGroup.visible = false;
 
-    // Restore star colors to normal
     starLayers.forEach(({ points, baseColors, count }) => {
       const colors = points.geometry.attributes.color.array;
       for (let i = 0; i < count; i++) {
@@ -1654,7 +1672,6 @@ function processEnterTransition(t) {
       points.geometry.attributes.color.needsUpdate = true;
     });
 
-    // Show resume UI
     document.getElementById('topbar').classList.add('visible');
     document.getElementById('filters').classList.add('visible');
     document.getElementById('bbar').classList.add('visible');
@@ -1662,7 +1679,7 @@ function processEnterTransition(t) {
 }
 
 // ============================================================
-//  FLY CAMERA (inner view)
+//  FLY CAMERA
 // ============================================================
 function flyTo(cp, lt) {
   flyA = { from: cam.position.clone(), to: cp, ft: new THREE.Vector3(innerOrbit.tx, innerOrbit.ty, innerOrbit.tz), tt: lt, t: 0 };
@@ -1693,11 +1710,25 @@ function processFly() {
 }
 
 // ============================================================
-//  EVENTS
+//  EVENTS — FULLY OPTIMIZED FOR MOBILE + CLICK BUG FIX
 // ============================================================
 function bindEvents() {
+  // Prevent Safari gestures that cause zoom/back-swipe
+  document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
+  document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+  document.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
+
+  // Prevent double-tap zoom on iOS
+  let lastTapTime = 0;
+  document.addEventListener('touchstart', e => {
+    const now = Date.now();
+    if (now - lastTapTime < 350) e.preventDefault();
+    lastTapTime = now;
+  }, { passive: false });
+
   const el = ren.domElement;
   const enterHint = document.getElementById('enter-hint');
+  let canvasPointerActive = false;
 
   function checkOuterHover(cx, cy) {
     if (viewState !== 'outer') return false;
@@ -1707,10 +1738,13 @@ function bindEvents() {
     return rc.intersectObject(outerClickTarget).length > 0;
   }
 
-  let pointerDownOnCanvas = false;
-
+  // === POINTER DOWN ===
   el.addEventListener('pointerdown', e => {
-    pointerDownOnCanvas = true;
+    e.preventDefault();
+    canvasPointerActive = true;
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    el.setPointerCapture(e.pointerId);
+
     isDrag = true; dragBtn = e.button;
     px = e.clientX; py = e.clientY;
     downX = e.clientX; downY = e.clientY;
@@ -1718,9 +1752,14 @@ function bindEvents() {
     if (viewState === 'inner') autoDrift = false;
   });
 
-  window.addEventListener('pointermove', e => {
-    // Outer hover
-    if (viewState === 'outer') {
+  // === POINTER MOVE ===
+  el.addEventListener('pointermove', e => {
+    if (activePointers.has(e.pointerId)) {
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    // Outer hover (desktop only)
+    if (viewState === 'outer' && !isTouchDevice) {
       const hovering = checkOuterHover(e.clientX, e.clientY);
       if (hovering !== isHoveringOrb) {
         isHoveringOrb = hovering;
@@ -1729,13 +1768,34 @@ function bindEvents() {
       }
     }
 
-    mp.x = (e.clientX / innerWidth)*2-1;
-    mp.y = -(e.clientY / innerHeight)*2+1;
+    // Update mouse position for single-pointer
+    if (activePointers.size <= 1) {
+      mp.x = (e.clientX / innerWidth)*2-1;
+      mp.y = -(e.clientY / innerHeight)*2+1;
+    }
 
     const moveDist = Math.sqrt((e.clientX-downX)**2 + (e.clientY-downY)**2);
     if (moveDist > 10) isTapDrag = true;
 
-    if (isDrag && isTapDrag && !flyA) {
+    // === PINCH-TO-ZOOM (2 fingers) ===
+    if (activePointers.size === 2 && !flyA) {
+      const pts = Array.from(activePointers.values());
+      const curDist = Math.sqrt((pts[1].x - pts[0].x)**2 + (pts[1].y - pts[0].y)**2);
+      if (prevPinchDist !== null) {
+        const delta = prevPinchDist - curDist;
+        if (viewState === 'outer') {
+          outerOrbit.radius = Math.max(2.2, Math.min(10, outerOrbit.radius + delta * 0.01));
+        } else if (viewState === 'inner') {
+          innerOrbit.dist = Math.max(8, Math.min(220, innerOrbit.dist + delta * 0.4));
+        }
+      }
+      prevPinchDist = curDist;
+      px = e.clientX; py = e.clientY;
+      return;
+    }
+
+    // === SINGLE-FINGER DRAG ===
+    if (isDrag && isTapDrag && !flyA && activePointers.size <= 1) {
       const dx = e.clientX - px;
       const dy = e.clientY - py;
       if (viewState === 'outer') {
@@ -1759,24 +1819,51 @@ function bindEvents() {
       px = e.clientX; py = e.clientY;
     }
 
-    // Inner hover
+    // Inner hover (desktop only)
     if (viewState === 'inner' && !isTouchDevice) updateInnerHover(e);
   });
 
+  // === POINTER UP — THE CLICK BUG FIX ===
   window.addEventListener('pointerup', e => {
-    if (pointerDownOnCanvas && !isTapDrag && Date.now() - downTime < 300) {
+    if (!canvasPointerActive) return;  // Only process if pointer started on canvas
+    canvasPointerActive = false;
+    activePointers.delete(e.pointerId);
+    if (activePointers.size < 2) prevPinchDist = null;
+
+    // ** BUG FIX: Update mp from this event BEFORE raycasting **
+    if (!isTapDrag && Date.now() - downTime < 300) {
+      mp.x = (e.clientX / innerWidth) * 2 - 1;
+      mp.y = -(e.clientY / innerHeight) * 2 + 1;
+
       if (viewState === 'outer' && checkOuterHover(e.clientX, e.clientY)) {
         startEnterTransition();
       } else if (viewState === 'inner') {
         onNodeClick();
       }
     }
+
     isDrag = false;
-    // Only reset drift when interaction was on the canvas, not on UI elements
-    if (pointerDownOnCanvas && viewState === 'inner') { driftBasePhi = innerOrbit.phi; autoDrift = true; }
-    pointerDownOnCanvas = false;
+    isTapDrag = false;
+    if (viewState === 'inner') {
+      driftBasePhi = innerOrbit.phi;
+      autoDrift = driftEnabled;
+    }
   });
 
+  // === POINTER CANCEL (edge case for mobile) ===
+  window.addEventListener('pointercancel', e => {
+    if (!canvasPointerActive) return;
+    canvasPointerActive = false;
+    activePointers.delete(e.pointerId);
+    if (activePointers.size < 2) prevPinchDist = null;
+    isDrag = false;
+    if (viewState === 'inner') {
+      driftBasePhi = innerOrbit.phi;
+      autoDrift = driftEnabled;
+    }
+  });
+
+  // === WHEEL ZOOM ===
   el.addEventListener('wheel', e => {
     if (flyA) return;
     if (viewState === 'outer') {
@@ -1791,6 +1878,19 @@ function bindEvents() {
   // Panel close
   document.getElementById('p-close').addEventListener('click', closePanel);
 
+  // Panel swipe-to-dismiss (mobile)
+  const panelEl = document.getElementById('panel');
+  let swipeStartX = 0, swipeStartY = 0;
+  panelEl.addEventListener('touchstart', e => {
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+  }, { passive: true });
+  panelEl.addEventListener('touchmove', e => {
+    const dx = e.touches[0].clientX - swipeStartX;
+    const dy = e.touches[0].clientY - swipeStartY;
+    if (dx > 80 && Math.abs(dy) < 40) closePanel();
+  }, { passive: true });
+
   // Filters
   document.querySelectorAll('.fbtn').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
@@ -1799,13 +1899,27 @@ function bindEvents() {
     applyFilter();
   }));
 
+  // Sidenav dropdown (desktop only)
+  const snEl = document.getElementById('sidenav');
+  document.querySelectorAll('.fbtn').forEach(b => {
+    if (b.dataset.c === 'all') return;
+    b.addEventListener('mouseenter', () => {
+      if (viewState !== 'inner') return;
+      clearTimeout(snHideTimer);
+      buildSideNav(b.dataset.c, b);
+    });
+    b.addEventListener('mouseleave', () => { snHideTimer = setTimeout(hideSideNav, 180); });
+  });
+  snEl.addEventListener('mouseenter', () => clearTimeout(snHideTimer));
+  snEl.addEventListener('mouseleave', () => { snHideTimer = setTimeout(hideSideNav, 180); });
+
   // Nav buttons
-  document.getElementById('nav-home').addEventListener('click', () => { autoDrift = true; flyHome(); });
+  document.getElementById('nav-home').addEventListener('click', () => { autoDrift = driftEnabled; flyHome(); });
   document.getElementById('nav-zin').addEventListener('click', () => {
-    innerOrbit.dist = Math.max(8, innerOrbit.dist - 15);
+    if (viewState === 'inner') innerOrbit.dist = Math.max(8, innerOrbit.dist - 15);
   });
   document.getElementById('nav-zout').addEventListener('click', () => {
-    innerOrbit.dist = Math.min(220, innerOrbit.dist + 15);
+    if (viewState === 'inner') innerOrbit.dist = Math.min(220, innerOrbit.dist + 15);
   });
 
   window.addEventListener('resize', () => {
@@ -1843,35 +1957,78 @@ function updateInnerHover(e) {
 
 function onNodeClick() {
   rc.setFromCamera(mp, cam);
-  const hits = rc.intersectObjects(meshes.filter(m => m.visible));
+  // Use enlarged hit targets on touch devices for easier tapping
+  const targets = (isTouchDevice && hitMeshes.length) ? hitMeshes : meshes.filter(m => m.visible);
+  const hits = rc.intersectObjects(targets);
   if (!hits.length) return;
-  selectMesh(hits[0].object);
+  // Map hit target back to the actual mesh
+  const hitIdx = hits[0].object.userData.idx;
+  const target = meshes[hitIdx];
+  if (!target) return;
+  selectMesh(target);
 }
 
 // ============================================================
 //  PANEL
 // ============================================================
 function selectMesh(o) {
+  if (navigator.vibrate) navigator.vibrate(10);  // Haptic feedback on mobile
   sel = o;
-  // Dim others, brighten selected
+
+  const selCat = o.userData.category;
+  activeF = selCat;
+  document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
+  const fb = document.querySelector('.fbtn[data-c="' + selCat + '"]');
+  if (fb) fb.classList.add('on');
+
+  refreshVisibility();
   meshes.forEach(m => {
-    const isActive = activeF === 'all' || m.userData.category === activeF;
     if (m === o) {
       m.material.uniforms.uSelected.value = 1.0;
       m.material.uniforms.uBrightness.value = 1.5;
     } else {
       m.material.uniforms.uSelected.value = 0.0;
-      m.material.uniforms.uBrightness.value = isActive
-        ? m.userData.baseBrightness * 0.35
-        : m.userData.baseBrightness * 0.1;
     }
   });
 
-  // Fly to selected
-  const cp = o.position.clone().add(new THREE.Vector3(0, 5, 25));
-  flyTo(cp, o.position.clone());
+  const catMeshes = meshes.filter(m => m.userData.category === selCat);
+  const total = catMeshes.length;
+  const ci = catMeshes.findIndex(m => m === o);
+  const nextM = catMeshes[(ci + 1) % total];
 
-  // Open panel
+  const centroid = new THREE.Vector3();
+  catMeshes.forEach(m => centroid.add(m.position));
+  centroid.divideScalar(total);
+
+  const anchor = (total > 1) ? nextM.position : centroid;
+  const towardDir = anchor.clone().sub(o.position);
+  const towardDist = towardDir.length();
+
+  if (towardDist > 0.1) {
+    towardDir.normalize();
+  } else {
+    towardDir.copy(new THREE.Vector3().sub(o.position).normalize());
+  }
+
+  const spread = catMeshes.reduce((max, m) => Math.max(max, m.position.distanceTo(centroid)), 0);
+  const pullBack = Math.max(28, spread * 1.6 + 10);
+
+  const up = new THREE.Vector3(0, 1, 0);
+  const leftDir = new THREE.Vector3().crossVectors(up, towardDir).normalize();
+  // On mobile, don't shift left (panel is full-width bottom sheet)
+  const leftShift = isMobile ? 0 : pullBack * 0.35;
+
+  const camPos = o.position.clone()
+    .sub(towardDir.clone().multiplyScalar(pullBack))
+    .add(new THREE.Vector3(0, pullBack * 0.22, 0))
+    .add(leftDir.multiplyScalar(leftShift));
+
+  const lookTarget = total > 1
+    ? new THREE.Vector3().lerpVectors(o.position, centroid, 0.35)
+    : o.position.clone();
+
+  flyTo(camPos, lookTarget);
+
   const d = o.userData;
   const cc = CC[d.category].hex;
   document.getElementById('p-cat').textContent = d.category;
@@ -1924,18 +2081,17 @@ function closePanel() {
 function buildPanelNav() {
   const nav = document.getElementById('p-nav');
   if (!nav || !sel) return;
-  // Scope to the same category as the selected orb (respects active filter)
   const cat = sel.userData.category;
   const catMeshes = meshes.filter(m => m.visible && m.userData.category === cat);
   const ci = catMeshes.findIndex(m => m === sel);
   const total = catMeshes.length;
-  // Wrap around: prev from first goes to last, next from last goes to first
   const prevM = catMeshes[(ci - 1 + total) % total];
   const nextM = catMeshes[(ci + 1) % total];
+  const cc = CC[cat].hex;
   nav.innerHTML =
-    '<button class="pnavbtn" id="pnav-prev">\u2190 Prev</button>' +
-    '<span class="pnavpos">' + (ci + 1) + ' / ' + total + '</span>' +
-    '<button class="pnavbtn" id="pnav-next">Next \u2192</button>';
+    '<button class="pnavbtn" id="pnav-prev" style="color:' + cc + ';border-color:' + cc + '30">\u2190 Prev</button>' +
+    '<span class="pnavpos" style="color:' + cc + ';opacity:0.7">' + (ci + 1) + ' / ' + total + '</span>' +
+    '<button class="pnavbtn" id="pnav-next" style="color:' + cc + ';border-color:' + cc + '30">Next \u2192</button>';
   nav.querySelector('#pnav-prev').addEventListener('click', () => selectMesh(prevM));
   nav.querySelector('#pnav-next').addEventListener('click', () => selectMesh(nextM));
 }
@@ -1951,6 +2107,8 @@ function refreshVisibility() {
         : m.userData.baseBrightness * 0.1;
     }
     glows[i].material.opacity = isActive ? glows[i].userData.baseOp * 0.35 : glows[i].userData.baseOp * 0.08;
+    // Sync hit meshes visibility
+    if (isTouchDevice && hitMeshes[i]) hitMeshes[i].visible = true;
   });
   lines.forEach(l => l.visible = activeF === 'all' || l.userData.category === activeF);
   labels.forEach(s => s.visible = activeF === 'all' || s.userData.category === activeF);
@@ -1974,6 +2132,64 @@ function applyFilter() {
 }
 
 // ============================================================
+//  SIDE NAV DROPDOWN
+// ============================================================
+function buildSideNav(category, btnEl) {
+  const nav = document.getElementById('sidenav');
+  const cc  = CC[category].hex;
+  if (btnEl) {
+    const r = btnEl.getBoundingClientRect();
+    nav.style.left      = Math.round(r.left + r.width / 2) + 'px';
+    nav.style.top       = Math.round(r.bottom + 10) + 'px';
+    nav.style.transform = 'translateX(-50%)';
+  }
+  const pool = meshes.filter(m => m.userData.category === category);
+  const sorted = (category === 'experience' || category === 'education')
+    ? pool.slice().sort((a, b) => (a.userData._startYear || 0) - (b.userData._startYear || 0)).reverse()
+    : pool.slice().sort((a, b) => a.userData.idx - b.userData.idx).reverse();
+
+  let h = '<div class="sn-label" style="color:' + cc + '">' +
+          category.charAt(0).toUpperCase() + category.slice(1) + '</div>';
+  sorted.forEach(m => {
+    h += '<div class="sn-item" data-idx="' + m.userData.idx + '" style="--sn-cc:' + cc + '">' +
+         m.userData.title + '</div>';
+  });
+  nav.innerHTML = h;
+  nav.classList.add('open');
+
+  nav.querySelectorAll('.sn-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const target = meshes[parseInt(el.dataset.idx)];
+      if (!target) return;
+      if (!target.visible) {
+        activeF = 'all';
+        document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
+        const allBtn = document.querySelector('.fbtn[data-c="all"]');
+        if (allBtn) allBtn.classList.add('on');
+        refreshVisibility();
+      }
+      selectMesh(target);
+      updateSideNavActive(target.userData.idx);
+    });
+  });
+  updateSideNavActive(sel ? sel.userData.idx : -1);
+}
+
+function updateSideNavActive(idx) {
+  const cc = activeF !== 'all' ? CC[activeF].hex : null;
+  document.querySelectorAll('.sn-item').forEach(el => {
+    const isActive = parseInt(el.dataset.idx) === idx;
+    el.classList.toggle('sn-active', isActive);
+    el.style.color       = isActive ? (cc || el.style.getPropertyValue('--sn-cc')) : '';
+    el.style.borderColor = isActive ? (cc || el.style.getPropertyValue('--sn-cc')) : '';
+  });
+}
+
+function hideSideNav() {
+  document.getElementById('sidenav').classList.remove('open');
+}
+
+// ============================================================
 //  RENDER LOOP
 // ============================================================
 function tick() {
@@ -1981,16 +2197,13 @@ function tick() {
   timer.update();
   const t = timer.getElapsed();
 
-  // --- STATE: OUTER (viewing nebula from outside) ---
   if (viewState === 'outer') {
     if (!isDrag) outerOrbit.theta += 0.0008;
     outerCamFromOrbit();
   }
-  // --- STATE: ENTERING (zoom transition) ---
   else if (viewState === 'entering') {
     processEnterTransition(t);
   }
-  // --- STATE: INNER (resume view) ---
   else if (viewState === 'inner') {
     processFly();
     if (autoDrift && driftEnabled && !flyA && !isDrag) {
@@ -2027,6 +2240,8 @@ function tick() {
     m.material.uniforms.uCameraPos.value.copy(cam.position);
     glows[i].position.copy(m.position);
     glows[i].scale.setScalar(m.userData.size * 7 * pu);
+    // Sync hit mesh positions for touch targets
+    if (isTouchDevice && hitMeshes[i]) hitMeshes[i].position.copy(m.position);
   });
 
   // Update line endpoints
@@ -2044,11 +2259,10 @@ function tick() {
   ren.render(scene, cam);
 }
 
-// ============================================================
+// ════════════════════════════════════════════════════════
 //  START
-// ============================================================
+// ════════════════════════════════════════════════════════
 boot();
-
 </script>
 </body>
 </html>
