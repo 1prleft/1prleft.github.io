@@ -151,7 +151,7 @@ canvas { display: block; touch-action: none; outline: none; }
 /* DETAIL PANEL */
 #panel {
   position: fixed; top: 0; right: 0; bottom: 0;
-  width: 35%; min-width: 333px; max-width: 94vw; z-index: 20;
+  width: 40%; min-width: 333px;/* max-width: 94vw;*/ z-index: 20;
   background: var(--surface); border-left: 1px solid var(--border);
   backdrop-filter: blur(40px) saturate(1.3);
   transform: translateX(105%);
@@ -159,6 +159,18 @@ canvas { display: block; touch-action: none; outline: none; }
   display: flex; flex-direction: column; overflow: hidden;
 }
 #panel.open { transform: translateX(0); }
+/* Scroll-fade hint at bottom of panel body */
+#panel .pbody-wrap {
+  position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column;
+}
+#panel .pbody-wrap::after {
+  content: ''; pointer-events: none;
+  position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+  background: linear-gradient(to bottom, transparent, rgba(10,10,18,0.82));
+  z-index: 1; border-radius: 0;
+  transition: opacity 0.3s ease;
+}
+#panel .pbody-wrap.at-bottom::after { opacity: 0; }
 .ph {
   padding: 2rem 2rem 0;
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -190,8 +202,10 @@ canvas { display: block; touch-action: none; outline: none; }
   overflow-y: auto; flex: 1;
   -webkit-overflow-scrolling: touch;
 }
-.pbody::-webkit-scrollbar { width: 3px; }
-.pbody::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+.pbody::-webkit-scrollbar { width: 6px; }
+.pbody::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 3px; }
+.pbody::-webkit-scrollbar-thumb { background: var(--panel-cc, rgba(255,255,255,0.18)); border-radius: 3px; }
+.pbody::-webkit-scrollbar-thumb:hover { background: var(--panel-cc-bright, rgba(255,255,255,0.32)); }
 .pimg { width: 100%; border-radius: 6px; margin-bottom: 1rem; display: block; object-fit: cover; }
 .pvid { width: 100%; border-radius: 6px; margin-bottom: 1rem; display: block; aspect-ratio: 16/9; background: #000; }
 .pdesc { font-size: 0.85rem; line-height: 1.75; color: var(--text); margin-bottom: 1.5rem; white-space: pre-line; }
@@ -231,7 +245,7 @@ canvas { display: block; touch-action: none; outline: none; }
   pointer-events: none; opacity: 0; transition: opacity 0.8s ease;
 }
 #bbar.visible { opacity: 1; }
-#bbar > * { pointer-events: auto; }
+#bbar.visible > * { pointer-events: auto; }
 .navbtns { display: flex; gap: 6px; }
 .nbtn {
   width: 38px; height: 38px; border-radius: 50%;
@@ -249,23 +263,27 @@ canvas { display: block; touch-action: none; outline: none; }
 
 /* NEBULA ENTER HINT */
 #enter-hint {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, calc(-50% - 22px));
   font-family: 'Courier New', monospace; font-size: 13px; color: rgba(255,240,210,0.0);
-  letter-spacing: 4px; text-transform: uppercase; pointer-events: none; z-index: 15;
+  letter-spacing: 4px; text-transform: uppercase; pointer-events: auto; z-index: 15;
   text-shadow: 0 0 20px rgba(255,200,100,0.6), 0 0 40px rgba(255,150,50,0.3);
-  transition: color 0.4s ease; white-space: nowrap;
+  transition: color 0.4s ease, font-weight 0s; white-space: nowrap;
+  font-weight: 400; cursor: pointer;
 }
 #enter-hint.visible { color: rgba(255,240,210,0.8); }
+#enter-hint.visible:hover { font-weight: 700; }
+@media (hover: none) { #enter-hint.visible { font-weight: 700; } }
 
 /* BOTTOM CLICK-TO-ENTER HINT */
 #click-hint {
   position: fixed; bottom: 2.2rem; left: 50%; transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
-  pointer-events: none; z-index: 15;
+  pointer-events: auto; z-index: 15; cursor: pointer;
   opacity: 0; transition: opacity 1s ease;
 }
 #click-hint.visible { opacity: 1; }
-#click-hint.fade-out { opacity: 0; transition: opacity 0.4s ease; }
+#click-hint.fade-out { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+#click-hint:not(.visible) { pointer-events: none; }
 .click-hint-text {
   font-family: 'Courier New', monospace; font-size: 0.65rem;
   letter-spacing: 0.25em; text-transform: uppercase;
@@ -285,9 +303,17 @@ canvas { display: block; touch-action: none; outline: none; }
 
 /* TRANSITION OVERLAY */
 #transition-overlay {
-  position: fixed; inset: 0; background: #000; opacity: 0;
+  position: fixed; inset: 0; background: #fff; opacity: 0;
   pointer-events: none; z-index: 100;
 }
+
+/* WARP STREAK CANVAS */
+#warp-canvas {
+  position: fixed; inset: 0; z-index: 90;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.15s ease;
+}
+#warp-canvas.active { opacity: 1; }
 
 /* PANEL NAV FOOTER */
 .pnav {
@@ -448,6 +474,7 @@ canvas { display: block; touch-action: none; outline: none; }
   }
   .hint { display: none; }
   .nbtn { width: 44px; height: 44px; font-size: 1.15rem; }
+  #settings-toggle { width: 34px; height: 34px; font-size: 0.85rem; }
 
   #sidenav { display: none; }
   #settings-panel { bottom: 3.5rem; left: 1rem; width: 230px; }
@@ -481,6 +508,7 @@ canvas { display: block; touch-action: none; outline: none; }
   <div class="click-hint-text">tap to enter</div>
   <div class="click-hint-arrow"></div>
 </div>
+<canvas id="warp-canvas"></canvas>
 <div id="transition-overlay"></div>
 
 <div id="topbar">
@@ -507,7 +535,9 @@ canvas { display: block; touch-action: none; outline: none; }
     </div>
     <button class="pclose" id="p-close">&times;</button>
   </div>
-  <div class="pbody" id="p-body"></div>
+  <div class="pbody-wrap">
+    <div class="pbody" id="p-body"></div>
+  </div>
   <div class="pnav" id="p-nav"></div>
 </div>
 
@@ -908,6 +938,9 @@ uniform vec3 uColor;
 uniform vec3 uCameraPos;
 uniform float uBrightness;
 uniform float uSelected;
+uniform float uIridescent;
+uniform float uInferno;
+uniform float uSize;
 varying vec3 vPosition;
 varying vec3 vNormal;
 varying vec3 vWorldPos;
@@ -923,26 +956,97 @@ void main(){
   vec3 warmColor = uColor;
   vec3 innerBlue = vec3(0.15, 0.2, 0.5);
   vec3 innerViolet = vec3(0.4, 0.25, 0.7);
-  float r = length(vPosition) / 1.6;
+  // Normalize r by actual orb size so shader works for all sizes (1.55 – 3.0)
+  float r = length(vPosition) / uSize;
   float innerMask = 1.0 - smoothstep(0.0, 0.5, r);
   float outerMask = smoothstep(0.4, 0.85, r);
   vec3 innerCol = mix(innerBlue, innerViolet, n1 * 0.5 + 0.5);
   vec3 outerCol = warmColor * (0.6 + n2 * 0.4);
   vec3 gasColor = innerCol * innerMask + mix(innerCol, outerCol, 0.6) * (1.0 - innerMask - outerMask) + outerCol * outerMask;
-  float coreDist = length(vPosition) / 1.6;
+  float coreDist = r;
   float coreGlow = exp(-coreDist * coreDist * 20.0);
   float coreStar = exp(-coreDist * coreDist * 80.0);
   vec3 coreColor = vec3(1.0, 0.98, 0.92) * coreStar * 2.0
                  + vec3(0.7, 0.8, 1.0) * coreGlow * 0.8;
-  vec3 rimColor = warmColor * pow(fresnel, 2.5) * 0.5;
-  float shellDensity = smoothstep(0.0, 0.3, r) * (1.0 - smoothstep(0.85, 1.0, r));
-  float turbAlpha = 0.5 + fbm(vPosition * 3.0 + uTime * 0.1) * 0.4;
-  float alpha = shellDensity * turbAlpha + innerMask * 0.15 + outerMask * 0.5;
-  alpha += fresnel * 0.2;
-  alpha = max(alpha, coreGlow * 0.8 + coreStar);
-  vec3 col = gasColor * (0.5 + n1 * 0.3) + coreColor + rimColor;
-  col *= uBrightness * (1.0 + uSelected * 0.5);
-  alpha *= 1.0 + uSelected * 0.3;
+  vec3 rimColor = warmColor * pow(fresnel, 2.5) * 0.8;
+  // Alpha: outerMask covers the full surface shell (r≈1), turbulence adds nebula texture,
+  // fresnel boosts rim — all producing solid ~0.7–0.9 coverage for NormalBlending
+  float turbAlpha = 0.55 + fbm(vPosition * 3.0 + uTime * 0.1) * 0.4;
+  float shellAlpha = outerMask * turbAlpha;
+  float alpha = shellAlpha * 0.82 + innerMask * 0.3;
+  alpha += fresnel * 0.25;
+  alpha = max(alpha, coreGlow * 0.9 + coreStar);
+  alpha = clamp(alpha, 0.0, 0.92);
+  vec3 col = gasColor * (0.65 + n1 * 0.35) + coreColor * 1.1 + rimColor;
+  col *= uBrightness * 1.4 * (1.0 + uSelected * 0.5);
+  alpha *= 1.0 + uSelected * 0.2;
+
+  // === IRIDESCENT SOAP-BUBBLE MODE (Luxe palette) ===
+  if (uIridescent > 0.5) {
+    float rawF = 1.0 - abs(dot(viewDir, vNormal));
+    float f = pow(rawF, 1.2);
+    // Thin-film interference: shift phase with noise + time so colors swim
+    float phase = n1 * 2.8 + uTime * 0.12;
+    vec3 rainbow = vec3(
+      0.5 + 0.5 * cos(f * 6.28318 * 2.0 + phase + 0.0),
+      0.5 + 0.5 * cos(f * 6.28318 * 2.0 + phase + 2.094),
+      0.5 + 0.5 * cos(f * 6.28318 * 2.0 + phase + 4.189)
+    );
+    // Gold-chrome base: shift between gold and silver across surface
+    vec3 goldTone   = vec3(1.0, 0.82, 0.28);
+    vec3 chromeTone = vec3(0.80, 0.84, 0.92);
+    vec3 base = mix(goldTone, chromeTone, n2 * 0.5 + 0.5);
+    // Blend rainbow iridescence over the metallic base
+    vec3 iridCol = mix(base, rainbow * 1.4, f * 0.65 + 0.1);
+    // Bright specular highlight
+    float spec = pow(max(0.0, 1.0 - rawF), 12.0) * 2.5;
+    iridCol += vec3(1.0, 0.97, 0.88) * spec;
+    // Soap-bubble alpha: mostly transparent face-on, opaque at rim
+    float iridAlpha = pow(f, 0.7) * 0.88 + 0.05 + spec * 0.3;
+    // Core inner glow persists
+    iridCol += coreColor * 0.4;
+    iridAlpha = max(iridAlpha, coreGlow * 0.5 + coreStar * 0.8);
+    iridCol *= uBrightness * (1.0 + uSelected * 0.5);
+    iridAlpha *= 1.0 + uSelected * 0.3;
+    gl_FragColor = vec4(iridCol, clamp(iridAlpha, 0.0, 1.0));
+    return;
+  }
+
+  // === INFERNO — fiery gaseous plasma mode ===
+  if (uInferno > 0.5) {
+    // Fast-churning noise for roiling fire effect
+    vec3 fp  = vPosition * 3.2 + uTime * 0.18;
+    vec3 fp2 = vPosition * 1.8 + uTime * 0.11 + vec3(3.7, 8.1, 2.4);
+    float fn1 = fbm(fp);
+    float fn2 = fbm(fp2);
+    float fn3 = fbm(vPosition * 5.5 + uTime * 0.25 + vec3(11.0));
+    // Fire color gradient: deep crimson → orange → gold → near-white core
+    vec3 crimson  = vec3(0.85, 0.04, 0.01);
+    vec3 orange   = uColor * 1.5;           // category color tinted hot
+    vec3 gold     = vec3(1.0,  0.78, 0.08);
+    vec3 hotWhite = vec3(1.0,  0.96, 0.82);
+    float heat = fn1 * 0.5 + fn2 * 0.35 + fn3 * 0.15;
+    vec3 fireCol = crimson;
+    fireCol = mix(fireCol, orange,   smoothstep(0.20, 0.50, heat));
+    fireCol = mix(fireCol, gold,     smoothstep(0.48, 0.72, heat));
+    fireCol = mix(fireCol, hotWhite, smoothstep(0.70, 0.90, heat));
+    // Rim flare: searing edge halo in category color
+    fireCol += uColor * pow(fresnel, 1.6) * 1.2;
+    // Bright plasma core
+    vec3 fireCore = hotWhite * coreStar * 3.0 + gold * coreGlow * 1.2;
+    fireCol += fireCore;
+    // Alpha: solid body with turbulent surface breakup for gaseous wisps
+    float fTurb = 0.62 + fn1 * 0.32 + fn3 * 0.18;
+    float fAlpha = outerMask * fTurb * 0.88 + innerMask * 0.4;
+    fAlpha += fresnel * 0.28;
+    fAlpha = max(fAlpha, coreGlow * 0.95 + coreStar);
+    fAlpha = clamp(fAlpha, 0.0, 0.94);
+    fireCol *= uBrightness * 1.5 * (1.0 + uSelected * 0.5);
+    fAlpha  *= 1.0 + uSelected * 0.2;
+    gl_FragColor = vec4(fireCol, fAlpha);
+    return;
+  }
+
   gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
 }`;
 
@@ -958,11 +1062,13 @@ ${NOISE_GLSL}
 void main(){
   vNormal = normalize(normalMatrix * normal);
   vec3 pos = position;
-  float n = fbm5(pos * 1.8 + uTime * 0.1);
-  float n2 = fbm(pos * 3.2 + uTime * 0.07 + vec3(10.0));
-  pos += normal * (n * 0.18 + n2 * 0.06);
+  // Scale noise input down so detail reads well at large shell radius
+  vec3 noisePos = pos * 0.012;
+  float n = fbm5(noisePos * 1.8 + uTime * 0.1);
+  float n2 = fbm(noisePos * 3.2 + uTime * 0.07 + vec3(10.0));
+  pos += normal * (n * 14.0 + n2 * 5.0);
   pos *= 1.0 + sin(uTime * 0.3) * 0.02 + sin(uTime * 0.17) * 0.01;
-  vPosition = pos;
+  vPosition = noisePos;
   vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
 }`;
@@ -1010,8 +1116,10 @@ void main(){
 //  THREE.JS SCENE
 // ============================================================
 let scene, cam, ren, timer;
-let meshes = [], glows = [], lines = [], labels = [];
+let meshes = [], glows = [], backdrops = [], lines = [], labels = [];
+let infernoAuras = [], luxeAuras = [];
 let hitMeshes = [];  // enlarged invisible hit targets for touch
+const visitedOrbs = new Set();  // tracks orbs the user has opened — they stay fully lit
 let outerShellGroup;
 let activeF = 'all';
 let hov = null, sel = null;
@@ -1021,9 +1129,14 @@ let flyA = null;
 // State: 'outer' | 'entering' | 'inner'
 let viewState = 'outer';
 let enterStart = 0;
-const ENTER_DURATION = 3.0;
+const ENTER_DURATION = 2.8;
+let prevEnterEased = 0;
+let transitionOrbScale = 1.0; // scales inner orbs during enter transition
+let labelFadeStart = -1;
+const LABEL_FADE_DUR = 0.55;
+let warpCanvas, warpCtx, warpStreakData = [];
 
-const outerOrbit = { theta: 0, phi: Math.PI / 2, radius: 4.5 };
+const outerOrbit = { theta: 0, phi: Math.PI / 2, radius: 320 };
 const innerOrbit = { theta: 0, phi: 1.227, dist: 149, tx: 0, ty: 0, tz: 0 };
 
 let isDrag = false, dragBtn = -1, px = 0, py = 0, downX = 0, downY = 0, downTime = 0;
@@ -1046,6 +1159,92 @@ const activePointers = new Map();
 let prevPinchDist = null;
 
 function easeInOutCubic(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+
+// Space-dive: slow gravitational creep, then violent warp-speed plunge
+// First 35% of time covers ~8% of distance. Final 65% is explosive.
+function easeSpaceDive(t) {
+  if (t < 0.35) {
+    const u = t / 0.35;
+    return u * u * u * 0.08;
+  }
+  const u = (t - 0.35) / 0.65;
+  return 0.08 + u * u * u * u * 0.92;
+}
+
+function initWarpCanvas() {
+  warpCanvas = document.getElementById('warp-canvas');
+  warpCanvas.width  = innerWidth;
+  warpCanvas.height = innerHeight;
+  warpCtx = warpCanvas.getContext('2d');
+  // Pre-compute 280 streak definitions (stable, no per-frame random)
+  warpStreakData = [];
+  for (let i = 0; i < 280; i++) {
+    warpStreakData.push({
+      angle:       (i / 280) * Math.PI * 2 + Math.sin(i * 7.31) * 0.022,
+      lenScale:    0.35 + Math.abs(Math.sin(i * 3.71)) * 0.65,
+      alphaScale:  0.25 + Math.abs(Math.sin(i * 2.13)) * 0.75,
+      width:       0.6  + Math.abs(Math.sin(i * 5.17)) * 1.6,
+      warmth:      Math.abs(Math.sin(i * 1.87)),
+    });
+  }
+}
+
+function drawWarpStreaks(progress, speed) {
+  if (!warpCtx || speed < 0.0003) { return; }
+  warpCtx.clearRect(0, 0, warpCanvas.width, warpCanvas.height);
+
+  const cx = warpCanvas.width  * 0.5;
+  const cy = warpCanvas.height * 0.5;
+  const diag = Math.sqrt(cx * cx + cy * cy);
+
+  // How intense are the streaks — driven by speed, not just progress
+  const intensity = Math.min(1.0, speed * 160.0);
+  // How far out do the streaks reach — driven by both progress and speed
+  const reach = Math.pow(Math.max(0, progress - 0.18) / 0.82, 1.1);
+
+  for (const s of warpStreakData) {
+    const innerR = diag * 0.025;                         // streaks start near center
+    const streakLen = diag * reach * s.lenScale * (0.12 + intensity * 0.88);
+    if (streakLen < 1.5) continue;
+
+    const cos = Math.cos(s.angle), sin = Math.sin(s.angle);
+    const x0 = cx + cos * innerR,       y0 = cy + sin * innerR;
+    const x1 = cx + cos * (innerR + streakLen), y1 = cy + sin * (innerR + streakLen);
+
+    const a = intensity * s.alphaScale * 0.7;
+    if (a < 0.01) continue;
+
+    // Cool blue-white early; warm golden-white as we plunge through the core
+    const warmth = progress * s.warmth;
+    const rr = Math.round(210 + warmth * 45);
+    const gg = Math.round(220 + warmth * 28);
+    const bb = 255;
+
+    const grad = warpCtx.createLinearGradient(x0, y0, x1, y1);
+    grad.addColorStop(0.0,  `rgba(${rr},${gg},${bb},0)`);
+    grad.addColorStop(0.15, `rgba(${rr},${gg},${bb},${a.toFixed(3)})`);
+    grad.addColorStop(0.65, `rgba(${rr},${gg},${bb},${(a * 0.55).toFixed(3)})`);
+    grad.addColorStop(1.0,  `rgba(${rr},${gg},${bb},0)`);
+    warpCtx.beginPath();
+    warpCtx.moveTo(x0, y0); warpCtx.lineTo(x1, y1);
+    warpCtx.strokeStyle = grad;
+    warpCtx.lineWidth = s.width * (0.7 + intensity * 0.8);
+    warpCtx.stroke();
+  }
+
+  // Central radial glow halo — brightens as we plunge
+  if (intensity > 0.25) {
+    const haloR = diag * 0.12 * intensity;
+    const halo = warpCtx.createRadialGradient(cx, cy, 0, cx, cy, haloR);
+    halo.addColorStop(0,   `rgba(255,240,200,${(intensity * 0.55).toFixed(3)})`);
+    halo.addColorStop(0.45,`rgba(220,200,255,${(intensity * 0.18).toFixed(3)})`);
+    halo.addColorStop(1,   'rgba(0,0,0,0)');
+    warpCtx.fillStyle = halo;
+    warpCtx.beginPath();
+    warpCtx.arc(cx, cy, haloR, 0, Math.PI * 2);
+    warpCtx.fill();
+  }
+}
 
 function outerCamFromOrbit() {
   cam.position.x = outerOrbit.radius * Math.sin(outerOrbit.phi) * Math.sin(outerOrbit.theta);
@@ -1070,33 +1269,36 @@ const PALETTES = {
   earth: { name: 'Earth', portfolio: '#d97706', experience: '#9f7aea', skills: '#5eead4', education: '#a3e635', about: '#fb923c', void: '#0d0b08' },
   midnight: { name: 'Midnight', portfolio: '#818cf8', experience: '#c084fc', skills: '#67e8f9', education: '#6ee7b7', about: '#f9a8d4', void: '#030318' },
   monochrome: { name: 'Mono', portfolio: '#e2e8f0', experience: '#cbd5e1', skills: '#94a3b8', education: '#64748b', about: '#f1f5f9', void: '#09090b' },
+  ember: { name: 'Ember', portfolio: '#ef4444', experience: '#f59e0b', skills: '#06b6d4', education: '#84cc16', about: '#ec4899', void: '#0c0a09' },
+  ocean: { name: 'Ocean', portfolio: '#f97316', experience: '#6366f1', skills: '#22d3ee', education: '#34d399', about: '#f472b6', void: '#020617' },
+  luxe: { name: 'Luxe', portfolio: '#d4a843', experience: '#a8b8c8', skills: '#c8a8d8', education: '#a8d0c0', about: '#d8a090', void: '#080706' },
+  inferno: { name: 'Inferno', portfolio: '#ff6a00', experience: '#ff3d00', skills: '#ffaa00', education: '#ff8c00', about: '#e83000', void: '#0a0400' },
 };
 
 let currentPalette = 'default';
 let currentSpaceColor = '#06060d';
-let currentStarColor = 'warm';
+let currentStarColor = 'solar';
 let globalStarIntensity = 1.0;
 
 const SPACE_COLORS = [
   { key: '#06060d', label: 'Void' }, { key: '#030318', label: 'Midnight' },
   { key: '#020617', label: 'Deep Sea' }, { key: '#0c0604', label: 'Ember Dark' },
-  { key: '#060a06', label: 'Forest Night' }, { key: '#12001a', label: 'Nebula' },
-  { key: '#000814', label: 'Abyss' },
+  { key: '#12001a', label: 'Nebula' }, { key: '#000814', label: 'Abyss' },
 ];
 const spaceSwatchColors = {
   '#06060d': '#1e1c2e', '#030318': '#0d0d40', '#020617': '#071840',
-  '#0c0604': '#2e150c', '#060a06': '#111f11', '#12001a': '#340050', '#000814': '#002060',
+  '#0c0604': '#2e150c', '#12001a': '#340050', '#000814': '#002060',
 };
 
 const STAR_COLORS = [
-  { key: 'warm',  label: 'Warm',  r: 1.03, g: 1.0, b: 0.97 },
-  { key: 'white', label: 'White', r: 1.0,  g: 1.0, b: 1.0  },
-  { key: 'blue',  label: 'Blue',  r: 0.80, g: 0.90, b: 1.0  },
-  { key: 'gold',  label: 'Gold',  r: 1.05, g: 0.95, b: 0.70 },
-  { key: 'pink',  label: 'Pink',  r: 1.05, g: 0.80, b: 0.90 },
-  { key: 'teal',  label: 'Teal',  r: 0.75, g: 1.0,  b: 0.95 },
+  { key: 'solar',  label: 'Solar',  r: 2.0,  g: 1.4,  b: 0.05 },
+  { key: 'arctic', label: 'Arctic', r: 0.15, g: 1.1,  b: 2.2  },
+  { key: 'ember',  label: 'Ember',  r: 2.2,  g: 0.55, b: 0.02 },
+  { key: 'aurora', label: 'Aurora', r: 0.05, g: 2.0,  b: 1.1  },
+  { key: 'plasma', label: 'Plasma', r: 1.0,  g: 0.08, b: 2.2  },
+  { key: 'blaze',  label: 'Blaze',  r: 2.0,  g: 0.08, b: 1.0  },
 ];
-const starSwatchColors = { warm: '#fff8e7', white: '#ffffff', blue: '#cce4ff', gold: '#ffe4a0', pink: '#ffd6eb', teal: '#c0fff6' };
+const starSwatchColors = { solar: '#ffbb00', arctic: '#00ccff', ember: '#ff5500', aurora: '#00ffaa', plasma: '#cc44ff', blaze: '#ff1177' };
 
 const starLayers = [];
 
@@ -1116,11 +1318,17 @@ function applyPalette(key) {
   CC.skills.hex = p.skills;       CC.skills.i = parseInt(p.skills.slice(1), 16);
   CC.education.hex = p.education;  CC.education.i = parseInt(p.education.slice(1), 16);
   CC.about.hex = p.about;         CC.about.i = parseInt(p.about.slice(1), 16);
+  const isLuxe    = key === 'luxe';
+  const isInferno = key === 'inferno';
   meshes.forEach((m, i) => {
     const c = new THREE.Color(CC[m.userData.category].i);
     if (m.material.uniforms && m.material.uniforms.uColor) m.material.uniforms.uColor.value.set(c.r, c.g, c.b);
-    if (glows[i]) glows[i].material.color.setHex(CC[m.userData.category].i);
+    if (m.material.uniforms && m.material.uniforms.uIridescent) m.material.uniforms.uIridescent.value = isLuxe    ? 1.0 : 0.0;
+    if (m.material.uniforms && m.material.uniforms.uInferno)    m.material.uniforms.uInferno.value    = isInferno ? 1.0 : 0.0;
+    if (glows[i]) glows[i].material.color.copy(new THREE.Color(CC[m.userData.category].i).lerp(new THREE.Color(1,1,1), 0.45));
   });
+  infernoAuras.forEach(s => { s.visible = isInferno; });
+  luxeAuras.forEach(s   => { s.visible = isLuxe; });
   document.querySelectorAll('.palette-swatch').forEach(s => s.classList.toggle('active', s.dataset.palette === key));
 }
 
@@ -1289,6 +1497,7 @@ function buildSettingsUI() {
   const panel = document.getElementById('settings-panel');
   if (toggle && panel) {
     toggle.addEventListener('click', () => {
+      if (viewState !== 'inner') return;
       panel.classList.toggle('open');
       toggle.classList.toggle('active');
     });
@@ -1311,7 +1520,7 @@ function boot() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x06060d);
 
-  cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 600);
+  cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1200);
   outerCamFromOrbit();
 
   ren = new THREE.WebGLRenderer({ antialias: !isMobile });
@@ -1325,6 +1534,7 @@ function boot() {
   timer = new THREE.Timer();
   timer.connect(document);
 
+  initWarpCanvas();
   buildOuterNebula();
   buildStars();
   buildInnerOrbs();
@@ -1365,6 +1575,10 @@ function buildOuterNebula() {
   outerShellGroup = new THREE.Group();
   scene.add(outerShellGroup);
 
+  // Shell radius must encompass all inner orbs (SPREAD=45, so orbs reach ~60 units)
+  // Shell at ~160-180 creates a comfortable enclosure with breathing room
+  const SHELL_R = 175;
+  const SHELL2_R = 155;
   const shellSeg = isMobile ? 64 : 128;
 
   outerShellMat = new THREE.ShaderMaterial({
@@ -1372,16 +1586,17 @@ function buildOuterNebula() {
     uniforms: { uTime: {value:0}, uCameraPos: {value: cam.position.clone()}, uOpacity: {value:1.0} },
     transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending
   });
-  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.5, shellSeg, shellSeg), outerShellMat));
+  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(SHELL_R, shellSeg, shellSeg), outerShellMat));
 
   outerShell2Mat = new THREE.ShaderMaterial({
     vertexShader: OUTER_SHELL_VERT, fragmentShader: OUTER_SHELL_FRAG,
     uniforms: { uTime: {value:0}, uCameraPos: {value: cam.position.clone()}, uOpacity: {value:1.0} },
     transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending
   });
-  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(1.25, isMobile ? 48 : 80, isMobile ? 48 : 80), outerShell2Mat));
+  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(SHELL2_R, isMobile ? 48 : 80, isMobile ? 48 : 80), outerShell2Mat));
 
-  const starFrag = `uniform vec3 uCameraPos; uniform float uTime;
+  // Central bright star core — scaled up proportionally
+  const starFrag = `uniform vec3 uCameraPos; uniform float uTime; uniform float uOpacity;
 varying vec3 vNorm; varying vec3 vWP;
 void main(){
   vec3 viewDir = normalize(uCameraPos - vWP);
@@ -1389,17 +1604,17 @@ void main(){
   float glow = pow(1.0 - fresnel, 4.0);
   vec3 col = vec3(1.0, 0.97, 0.92) * (1.5 + glow * 2.5);
   col *= 1.0 + sin(uTime * 8.0) * 0.03;
-  gl_FragColor = vec4(col, glow);
+  gl_FragColor = vec4(col, glow * uOpacity);
 }`;
   outerStarMat = new THREE.ShaderMaterial({
     vertexShader: `varying vec3 vNorm; varying vec3 vWP;
 void main(){ vNorm = normalize(normalMatrix * normal); vWP = (modelMatrix * vec4(position,1.0)).xyz;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
     fragmentShader: starFrag,
-    uniforms: { uTime: {value:0}, uCameraPos: {value: cam.position.clone()} },
+    uniforms: { uTime: {value:0}, uCameraPos: {value: cam.position.clone()}, uOpacity: {value:1.0} },
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
   });
-  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(0.07, 32, 32), outerStarMat));
+  outerShellGroup.add(new THREE.Mesh(new THREE.SphereGeometry(8, 32, 32), outerStarMat));
 
   const gc = document.createElement('canvas');
   gc.width = 256; gc.height = 256;
@@ -1414,7 +1629,7 @@ void main(){ vNorm = normalize(normalMatrix * normal); vWP = (modelMatrix * vec4
     blending: THREE.AdditiveBlending, opacity: 0.5, depthWrite: false
   });
   outerGlowSprite = new THREE.Sprite(outerGlowSpriteMat);
-  outerGlowSprite.scale.set(1.0, 1.0, 1);
+  outerGlowSprite.scale.set(120, 120, 1);
   outerShellGroup.add(outerGlowSprite);
 
   const hc = document.createElement('canvas');
@@ -1428,12 +1643,12 @@ void main(){ vNorm = normalize(normalMatrix * normal); vWP = (modelMatrix * vec4
     map: new THREE.CanvasTexture(hc), transparent: true,
     blending: THREE.AdditiveBlending, opacity: 0.5, depthWrite: false
   }));
-  haloSprite.scale.set(6, 6, 1);
+  haloSprite.scale.set(500, 500, 1);
   outerShellGroup.add(haloSprite);
 
-  // Larger click target for touch
+  // Larger click target — sized to the shell for easy clicking/tapping
   outerClickTarget = new THREE.Mesh(
-    new THREE.SphereGeometry(isTouchDevice ? 1.2 : 0.6, 16, 16),
+    new THREE.SphereGeometry(isTouchDevice ? SHELL_R * 1.1 : SHELL_R, 16, 16),
     new THREE.MeshBasicMaterial({ visible: false })
   );
   outerShellGroup.add(outerClickTarget);
@@ -1499,10 +1714,87 @@ function buildInnerOrbs() {
   gx.fillStyle = gr; gx.fillRect(0,0,512,512);
   const glowTex = new THREE.CanvasTexture(gc);
 
+  // Shared dark occlusion texture — darkens background behind each orb so
+  // orbs remain visible against any space color, including light backgrounds
+  const bdCv = document.createElement('canvas');
+  bdCv.width = bdCv.height = 128;
+  const bdCtx = bdCv.getContext('2d');
+  const bdGr = bdCtx.createRadialGradient(64,64,0,64,64,64);
+  bdGr.addColorStop(0,   'rgba(0,0,0,0.78)');
+  bdGr.addColorStop(0.45,'rgba(0,0,0,0.55)');
+  bdGr.addColorStop(0.75,'rgba(0,0,0,0.18)');
+  bdGr.addColorStop(1,   'rgba(0,0,0,0)');
+  bdCtx.fillStyle = bdGr; bdCtx.fillRect(0,0,128,128);
+  const backdropTex = new THREE.CanvasTexture(bdCv);
+
+  // ── Inferno aura texture: fire corona ring ─────────────────
+  const iaCv = document.createElement('canvas');
+  iaCv.width = iaCv.height = 256;
+  const iax = iaCv.getContext('2d');
+  // Ring positioned in outer 35% of canvas so it hugs the orb at tight scale
+  const iag = iax.createRadialGradient(128,128,0,128,128,128);
+  iag.addColorStop(0,    'rgba(0,0,0,0)');
+  iag.addColorStop(0.63, 'rgba(0,0,0,0)');
+  iag.addColorStop(0.68, 'rgba(255,90,5,0.55)');
+  iag.addColorStop(0.78, 'rgba(255,185,15,0.95)');
+  iag.addColorStop(0.88, 'rgba(255,60,0,0.55)');
+  iag.addColorStop(0.96, 'rgba(160,15,0,0.15)');
+  iag.addColorStop(1.0,  'rgba(0,0,0,0)');
+  iax.fillStyle = iag; iax.fillRect(0,0,256,256);
+  const infernoAuraTex = new THREE.CanvasTexture(iaCv);
+
+  // ── Luxe aura texture: rainbow soap-film ring ───────────────
+  const laCv = document.createElement('canvas');
+  laCv.width = laCv.height = 256;
+  const lax = laCv.getContext('2d');
+  // Rainbow arc segments cycling full hue around the ring
+  const ringR = 90, ringW = 26;
+  for (let deg = 0; deg < 360; deg += 3) {
+    const hue = (deg * 1.0) % 360;
+    lax.beginPath();
+    lax.arc(128, 128, ringR, (deg - 2) * Math.PI / 180, (deg + 2) * Math.PI / 180);
+    lax.strokeStyle = `hsla(${hue}, 100%, 78%, 0.88)`;
+    lax.lineWidth = ringW;
+    lax.stroke();
+  }
+  // Pearl inner shimmer on top
+  lax.globalCompositeOperation = 'source-over';
+  const lag = lax.createRadialGradient(128,128,0,128,128,128);
+  lag.addColorStop(0,    'rgba(255,255,255,0)');
+  lag.addColorStop(0.60, 'rgba(255,255,255,0)');
+  lag.addColorStop(0.70, 'rgba(255,245,255,0.3)');
+  lag.addColorStop(0.82, 'rgba(200,220,255,0.5)');
+  lag.addColorStop(1.0,  'rgba(255,255,255,0)');
+  lax.fillStyle = lag; lax.fillRect(0,0,256,256);
+  // Mask: fade edges so only the ring zone shows
+  const lmg = lax.createRadialGradient(128,128,0,128,128,128);
+  lmg.addColorStop(0,    'rgba(0,0,0,0)');
+  lmg.addColorStop(0.58, 'rgba(0,0,0,0)');
+  lmg.addColorStop(0.66, 'rgba(255,255,255,0.7)');
+  lmg.addColorStop(0.78, 'rgba(255,255,255,1.0)');
+  lmg.addColorStop(0.90, 'rgba(255,255,255,0.5)');
+  lmg.addColorStop(1.0,  'rgba(0,0,0,0)');
+  lax.globalCompositeOperation = 'destination-in';
+  lax.fillStyle = lmg; lax.fillRect(0,0,256,256);
+  lax.globalCompositeOperation = 'source-over';
+  const luxeAuraTex = new THREE.CanvasTexture(laCv);
+
   NL.forEach((d, i) => {
     const c = new THREE.Color(CC[d.category].i);
     const yf = (d.yearFactor !== undefined) ? d.yearFactor : 1;
-    const baseBrightness = 0.5 + yf * 0.5;
+    const baseBrightness = 0.75 + yf * 0.25;
+
+    // Dark backdrop sprite — renders first, creates local contrast zone
+    const bdMat = new THREE.SpriteMaterial({
+      map: backdropTex, transparent: true, opacity: 1.0,
+      depthWrite: false, blending: THREE.NormalBlending,
+    });
+    const bd = new THREE.Sprite(bdMat);
+    bd.scale.setScalar(d.size * 6.5);
+    bd.position.set(d.pos.x, d.pos.y, d.pos.z);
+    bd.renderOrder = 1;
+    scene.add(bd);
+    backdrops.push(bd);
 
     const mat = new THREE.ShaderMaterial({
       vertexShader: INNER_ORB_VERT,
@@ -1514,27 +1806,57 @@ function buildInnerOrbs() {
         uBrightness: {value: baseBrightness},
         uSelected: {value: 0.0},
         uSize: {value: d.size},
+        uIridescent: {value: 0.0},
+        uInferno: {value: 0.0},
       },
       transparent: true, side: THREE.DoubleSide,
-      depthWrite: false, blending: THREE.AdditiveBlending
+      depthWrite: false, blending: THREE.NormalBlending
     });
     const m = new THREE.Mesh(new THREE.SphereGeometry(d.size, SEG, SEG), mat);
     m.position.set(d.pos.x, d.pos.y, d.pos.z);
+    m.renderOrder = 2;
     m.userData = { ...d, idx: i, origPos: new THREE.Vector3(d.pos.x, d.pos.y, d.pos.z), baseBrightness };
     scene.add(m);
     meshes.push(m);
 
-    const glowOp = 0.05 + yf * 0.12;
+    // Colored glow aura — additive halo on top of the orb, tinted lighter than raw category color
+    const glowOp = 0.3 + yf * 0.28;
+    const glowColor = new THREE.Color(CC[d.category].i).lerp(new THREE.Color(1, 1, 1), 0.45);
     const sm = new THREE.SpriteMaterial({
-      map: glowTex, color: CC[d.category].i, transparent: true,
+      map: glowTex, color: glowColor, transparent: true,
       opacity: glowOp, depthWrite: false, blending: THREE.AdditiveBlending
     });
     const sp = new THREE.Sprite(sm);
-    sp.scale.setScalar(d.size * 7);
+    sp.scale.setScalar(d.size * 11);
     sp.position.copy(m.position);
+    sp.renderOrder = 3;
     sp.userData = { ni: i, baseOp: glowOp };
     scene.add(sp);
     glows.push(sp);
+
+    // Inferno fire-corona aura (hidden unless Inferno palette active)
+    const iaSp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: infernoAuraTex, transparent: true, opacity: 0.72,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    iaSp.scale.setScalar(d.size * 3.2);
+    iaSp.position.copy(m.position);
+    iaSp.renderOrder = 4;
+    iaSp.visible = false;
+    scene.add(iaSp);
+    infernoAuras.push(iaSp);
+
+    // Luxe soap-film rainbow aura (hidden unless Luxe palette active)
+    const laSp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: luxeAuraTex, transparent: true, opacity: 0.6,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    laSp.scale.setScalar(d.size * 3.0);
+    laSp.position.copy(m.position);
+    laSp.renderOrder = 4;
+    laSp.visible = false;
+    scene.add(laSp);
+    luxeAuras.push(laSp);
   });
 }
 
@@ -1578,9 +1900,13 @@ function setInnerVisibility(visible) {
   meshes.forEach((m, i) => {
     m.visible = visible;
     glows[i].visible = visible;
+    backdrops[i].visible = visible;
+    infernoAuras[i].visible = visible && currentPalette === 'inferno';
+    luxeAuras[i].visible    = visible && currentPalette === 'luxe';
   });
   lines.forEach(l => l.visible = visible);
-  labels.forEach(s => s.visible = visible);
+  // Labels are hidden during transition and fade in after arrival; only allow hiding here
+  if (!visible) labels.forEach(s => s.visible = false);
   if (isTouchDevice) hitMeshes.forEach(h => h.visible = visible);
 }
 
@@ -1591,6 +1917,7 @@ function startEnterTransition() {
   if (viewState !== 'outer') return;
   viewState = 'entering';
   enterStart = timer.getElapsed();
+  prevEnterEased = 0;
 
   setInnerVisibility(true);
 
@@ -1609,10 +1936,12 @@ function startEnterTransition() {
 }
 
 function processEnterTransition(t) {
-  const elapsed = t - enterStart;
+  const elapsed  = t - enterStart;
   const progress = Math.min(elapsed / ENTER_DURATION, 1.0);
+
   const eased = easeInOutCubic(progress);
 
+  // ── Camera position: outer orbit → inner orbit ──
   const outerPos = new THREE.Vector3(
     outerOrbit.radius * Math.sin(outerOrbit.phi) * Math.sin(outerOrbit.theta),
     outerOrbit.radius * Math.cos(outerOrbit.phi),
@@ -1623,58 +1952,69 @@ function processEnterTransition(t) {
     innerOrbit.dist * Math.cos(innerOrbit.phi),
     innerOrbit.dist * Math.sin(innerOrbit.phi) * Math.cos(innerOrbit.theta)
   );
-
   cam.position.lerpVectors(outerPos, innerPos, eased);
+
+  // ── Look target: smooth, no shake ──
   const outerLook = new THREE.Vector3(0, 0, 0);
   const innerLook = new THREE.Vector3(innerOrbit.tx, innerOrbit.ty, innerOrbit.tz);
-  const lookTarget = new THREE.Vector3().lerpVectors(outerLook, innerLook, eased);
-  cam.lookAt(lookTarget);
+  cam.lookAt(new THREE.Vector3().lerpVectors(outerLook, innerLook, eased));
 
+  // ── Outer shell fades gently — keep group visible so glow sprite can bloom ──
   if (outerShellMat) {
-    const shellOpacity = 1.0 - eased;
-    outerShellMat.uniforms.uOpacity.value = shellOpacity;
+    const shellOpacity = Math.max(0, 1.0 - eased * 1.4);
+    outerShellMat.uniforms.uOpacity.value  = shellOpacity;
     outerShell2Mat.uniforms.uOpacity.value = shellOpacity;
-    outerShellGroup.visible = shellOpacity > 0.01;
+    // Star core dissolves sooner — fully gone by ~35% progress
+    outerStarMat.uniforms.uOpacity.value = Math.max(0, 1.0 - progress / 0.35);
   }
 
-  const fovWarp = Math.sin(progress * Math.PI) * 35;
-  cam.fov = 55 + fovWarp;
+  // ── Phase curve: quick ramp to full white at 55%, smooth fade to clear by 100% ──
+  let phase;
+  if (progress < 0.55) {
+    phase = Math.pow(progress / 0.55, 1.6);  // accelerating build
+  } else {
+    phase = Math.pow(1.0 - (progress - 0.55) / 0.45, 0.8); // smooth fade-out
+  }
+
+  // ── White light overlay ──
+  document.getElementById('transition-overlay').style.opacity = phase.toString();
+
+  // ── Inner orbs start collapsed and only grow in — never shrink first ──
+  transitionOrbScale = eased; // 0 → 1.0 as transition progresses
+
+  // ── Outer glow orb blooms as white builds, retreats as it clears ──
+  if (outerGlowSprite && outerGlowSpriteMat) {
+    outerGlowSprite.scale.setScalar(120 + phase * phase * 360);
+    outerGlowSpriteMat.opacity = Math.min(0.92, 0.45 + phase * 0.47);
+  }
+
+  // ── Subtle FOV opens slightly with the bloom ──
+  cam.fov = 55 + phase * 7;
   cam.updateProjectionMatrix();
 
-  const exposureWarp = 1.0 + Math.sin(progress * Math.PI) * 5.0;
-  ren.toneMappingExposure = exposureWarp;
+  // ── Very gentle exposure lift tied to bloom ──
+  ren.toneMappingExposure = 1.0 + phase * 0.5;
 
-  const starBoost = 1.0 + Math.sin(progress * Math.PI) * 4.0;
-  starLayers.forEach(({ points, baseColors, count }) => {
-    const colors = points.geometry.attributes.color.array;
-    for (let i = 0; i < count; i++) {
-      colors[i * 3]     = Math.min(baseColors[i * 3] * starBoost, 2.0);
-      colors[i * 3 + 1] = Math.min(baseColors[i * 3 + 1] * starBoost, 2.0);
-      colors[i * 3 + 2] = Math.min(baseColors[i * 3 + 2] * starBoost, 2.0);
-    }
-    points.geometry.attributes.color.needsUpdate = true;
-  });
+  // ── Outer orbit slow rotation ──
+  outerOrbit.theta += 0.0008 * (1.0 + eased * 1.5);
 
+  // ── Transition complete ──
   if (progress >= 1.0) {
     viewState = 'inner';
+    transitionOrbScale = 1.0;
     cam.fov = 55;
     cam.updateProjectionMatrix();
     ren.toneMappingExposure = 1.0;
     outerShellGroup.visible = false;
-
-    starLayers.forEach(({ points, baseColors, count }) => {
-      const colors = points.geometry.attributes.color.array;
-      for (let i = 0; i < count; i++) {
-        colors[i * 3]     = baseColors[i * 3];
-        colors[i * 3 + 1] = baseColors[i * 3 + 1];
-        colors[i * 3 + 2] = baseColors[i * 3 + 2];
-      }
-      points.geometry.attributes.color.needsUpdate = true;
-    });
+    document.getElementById('transition-overlay').style.opacity = '0';
 
     document.getElementById('topbar').classList.add('visible');
     document.getElementById('filters').classList.add('visible');
     document.getElementById('bbar').classList.add('visible');
+
+    // Fade labels in from transparent after arriving in inner scene
+    labels.forEach(s => { s.material.opacity = 0; s.visible = true; });
+    labelFadeStart = t;
   }
 }
 
@@ -1784,7 +2124,7 @@ function bindEvents() {
       if (prevPinchDist !== null) {
         const delta = prevPinchDist - curDist;
         if (viewState === 'outer') {
-          outerOrbit.radius = Math.max(2.2, Math.min(10, outerOrbit.radius + delta * 0.01));
+          outerOrbit.radius = Math.max(200, Math.min(500, outerOrbit.radius + delta * 0.4));
         } else if (viewState === 'inner') {
           innerOrbit.dist = Math.max(8, Math.min(220, innerOrbit.dist + delta * 0.4));
         }
@@ -1867,7 +2207,7 @@ function bindEvents() {
   el.addEventListener('wheel', e => {
     if (flyA) return;
     if (viewState === 'outer') {
-      outerOrbit.radius = Math.max(2.2, Math.min(10, outerOrbit.radius + e.deltaY * 0.005));
+      outerOrbit.radius = Math.max(200, Math.min(500, outerOrbit.radius + e.deltaY * 0.3));
     } else if (viewState === 'inner') {
       innerOrbit.dist = Math.max(8, Math.min(220, innerOrbit.dist + e.deltaY * 0.06));
     }
@@ -1877,6 +2217,13 @@ function bindEvents() {
 
   // Panel close
   document.getElementById('p-close').addEventListener('click', closePanel);
+
+  // Hide scroll-fade when panel body is scrolled to the bottom
+  const pbody = document.getElementById('p-body');
+  pbody.addEventListener('scroll', () => {
+    const atBottom = pbody.scrollHeight - pbody.scrollTop <= pbody.clientHeight + 4;
+    pbody.closest('.pbody-wrap').classList.toggle('at-bottom', atBottom);
+  }, { passive: true });
 
   // Panel swipe-to-dismiss (mobile)
   const panelEl = document.getElementById('panel');
@@ -1926,7 +2273,24 @@ function bindEvents() {
     cam.aspect = innerWidth / innerHeight;
     cam.updateProjectionMatrix();
     ren.setSize(innerWidth, innerHeight);
+    if (warpCanvas) { warpCanvas.width = innerWidth; warpCanvas.height = innerHeight; }
   });
+
+  // Click-hint (tap to enter) triggers entry
+  document.getElementById('click-hint').addEventListener('click', () => {
+    if (viewState === 'outer') startEnterTransition();
+  });
+
+  // Enter-hint text click also triggers entry
+  document.getElementById('enter-hint').addEventListener('click', () => {
+    if (viewState === 'outer') startEnterTransition();
+  });
+}
+
+function _restoreBrightness(m) {
+  const isActive = activeF === 'all' || m.userData.category === activeF;
+  if (!isActive) return m.userData.baseBrightness * 0.22;
+  return visitedOrbs.has(m.userData.idx) ? m.userData.baseBrightness : m.userData.baseBrightness * 0.82;
 }
 
 function updateInnerHover(e) {
@@ -1937,7 +2301,7 @@ function updateInnerHover(e) {
     const o = hits[0].object;
     if (hov !== o) {
       if (hov && hov !== sel && hov.material.uniforms.uBrightness)
-        hov.material.uniforms.uBrightness.value = hov.userData.baseBrightness;
+        hov.material.uniforms.uBrightness.value = _restoreBrightness(hov);
       hov = o;
       o.material.uniforms.uBrightness.value = Math.min(o.userData.baseBrightness * 1.8, 2.0);
       ren.domElement.style.cursor = 'pointer';
@@ -1948,7 +2312,7 @@ function updateInnerHover(e) {
     tip.style.top = (e.clientY - 12) + 'px';
   } else {
     if (hov && hov !== sel && hov.material.uniforms.uBrightness)
-      hov.material.uniforms.uBrightness.value = hov.userData.baseBrightness;
+      hov.material.uniforms.uBrightness.value = _restoreBrightness(hov);
     hov = null;
     ren.domElement.style.cursor = 'grab';
     tip.classList.remove('vis');
@@ -1974,6 +2338,7 @@ function onNodeClick() {
 function selectMesh(o) {
   if (navigator.vibrate) navigator.vibrate(10);  // Haptic feedback on mobile
   sel = o;
+  visitedOrbs.add(o.userData.idx);  // permanently lit after first visit
 
   const selCat = o.userData.category;
   activeF = selCat;
@@ -2031,6 +2396,9 @@ function selectMesh(o) {
 
   const d = o.userData;
   const cc = CC[d.category].hex;
+  const _cr = parseInt(cc.slice(1,3),16), _cg = parseInt(cc.slice(3,5),16), _cb = parseInt(cc.slice(5,7),16);
+  document.getElementById('p-body').style.setProperty('--panel-cc', `rgba(${_cr},${_cg},${_cb},0.5)`);
+  document.getElementById('p-body').style.setProperty('--panel-cc-bright', `rgba(${_cr},${_cg},${_cb},0.85)`);
   document.getElementById('p-cat').textContent = d.category;
   document.getElementById('p-cat').style.color = cc;
   document.getElementById('p-title').textContent = d.title;
@@ -2059,7 +2427,10 @@ function selectMesh(o) {
     });
     bodyHTML += '</div>';
   }
-  document.getElementById('p-body').innerHTML = bodyHTML;
+  const pbodyEl = document.getElementById('p-body');
+  pbodyEl.innerHTML = bodyHTML;
+  pbodyEl.scrollTop = 0;
+  pbodyEl.closest('.pbody-wrap').classList.remove('at-bottom');
   document.getElementById('panel').classList.add('open');
   document.getElementById('filters').classList.add('panel-open');
   buildPanelNav();
@@ -2069,11 +2440,8 @@ function closePanel() {
   document.getElementById('panel').classList.remove('open');
   document.getElementById('filters').classList.remove('panel-open');
   sel = null;
-  meshes.forEach(m => {
+  meshes.forEach((m, i) => {
     m.material.uniforms.uSelected.value = 0.0;
-    m.material.uniforms.uBrightness.value = (activeF === 'all' || m.userData.category === activeF)
-      ? m.userData.baseBrightness * 0.35
-      : m.userData.baseBrightness * 0.1;
   });
   refreshVisibility();
 }
@@ -2099,14 +2467,24 @@ function buildPanelNav() {
 function refreshVisibility() {
   meshes.forEach((m, i) => {
     const isActive = activeF === 'all' || m.userData.category === activeF;
+    const isVisited = visitedOrbs.has(i);
     m.visible = true;
     glows[i].visible = true;
+    backdrops[i].visible = true;
     if (m.material.uniforms.uBrightness) {
-      m.material.uniforms.uBrightness.value = isActive
-        ? m.userData.baseBrightness * 0.35
-        : m.userData.baseBrightness * 0.1;
+      if (isActive) {
+        // Visited orbs stay fully lit; unvisited are only slightly dimmer
+        m.material.uniforms.uBrightness.value = isVisited
+          ? m.userData.baseBrightness
+          : m.userData.baseBrightness * 0.82;
+      } else {
+        m.material.uniforms.uBrightness.value = m.userData.baseBrightness * 0.22;
+      }
     }
-    glows[i].material.opacity = isActive ? glows[i].userData.baseOp * 0.35 : glows[i].userData.baseOp * 0.08;
+    glows[i].material.opacity = isActive
+      ? (isVisited ? glows[i].userData.baseOp : glows[i].userData.baseOp * 0.82)
+      : glows[i].userData.baseOp * 0.15;
+    backdrops[i].material.opacity = isActive ? 1.0 : 0.25;
     // Sync hit meshes visibility
     if (isTouchDevice && hitMeshes[i]) hitMeshes[i].visible = true;
   });
@@ -2211,6 +2589,14 @@ function tick() {
       innerOrbit.phi = driftBasePhi + Math.sin(t * 0.02) * 0.03;
     }
     if (!flyA) innerCamFromOrbit();
+
+    // Fade labels in after transition
+    if (labelFadeStart >= 0) {
+      const lp = Math.min((t - labelFadeStart) / LABEL_FADE_DUR, 1.0);
+      const lo = lp * lp * (3 - 2 * lp); // smoothstep
+      labels.forEach(s => { if (s.visible) s.material.opacity = lo; });
+      if (lp >= 1.0) labelFadeStart = -1;
+    }
   }
 
   // Update outer nebula uniforms
@@ -2221,25 +2607,43 @@ function tick() {
     outerShell2Mat.uniforms.uCameraPos.value.copy(cam.position);
     outerStarMat.uniforms.uTime.value = t;
     outerStarMat.uniforms.uCameraPos.value.copy(cam.position);
-    outerGlowSprite.scale.setScalar(0.9 + Math.sin(t * 1.5) * 0.06);
-    outerGlowSpriteMat.opacity = 0.45 + Math.sin(t * 2) * 0.05;
+    if (viewState !== 'entering') {
+      outerGlowSprite.scale.setScalar(120 + Math.sin(t * 1.5) * 6);
+      outerGlowSpriteMat.opacity = 0.45 + Math.sin(t * 2) * 0.05;
+    }
   }
 
   // Update inner orbs
+  const tScale = transitionOrbScale;
   meshes.forEach((m, i) => {
     if (!m.visible) return;
     const op = m.userData.origPos;
     const sp = 0.1 + (i % 5) * 0.025;
     const of = i * 2.3;
-    m.position.x = op.x + Math.sin(t * sp + of) * 1.0;
-    m.position.y = op.y + Math.cos(t * sp * 0.6 + of) * 0.8;
-    m.position.z = op.z + Math.sin(t * sp * 0.35 + of * 0.4) * 0.6;
+    m.position.x = (op.x + Math.sin(t * sp + of) * 1.0) * tScale;
+    m.position.y = (op.y + Math.cos(t * sp * 0.6 + of) * 0.8) * tScale;
+    m.position.z = (op.z + Math.sin(t * sp * 0.35 + of * 0.4) * 0.6) * tScale;
     const pu = 1 + Math.sin(t * 0.6 + of) * 0.025;
-    m.scale.setScalar(pu);
+    m.scale.setScalar(pu * tScale);
     m.material.uniforms.uTime.value = t;
     m.material.uniforms.uCameraPos.value.copy(cam.position);
+    backdrops[i].position.copy(m.position);
+    backdrops[i].scale.setScalar(m.userData.size * 6.5 * tScale);
     glows[i].position.copy(m.position);
-    glows[i].scale.setScalar(m.userData.size * 7 * pu);
+    glows[i].scale.setScalar(m.userData.size * 11 * pu * tScale);
+    // Inferno fire aura: flickers and breathes
+    if (currentPalette === 'inferno' && infernoAuras[i].visible) {
+      infernoAuras[i].position.copy(m.position);
+      const flicker = 0.52 + Math.sin(t * 4.1 + i * 2.3) * 0.14 + Math.sin(t * 7.7 + i * 1.1) * 0.06;
+      infernoAuras[i].material.opacity = flicker;
+      infernoAuras[i].scale.setScalar(m.userData.size * (3.2 + Math.sin(t * 2.8 + i * 0.9) * 0.12) * pu);
+    }
+    // Luxe soap-film aura: slow iridescent pulse
+    if (currentPalette === 'luxe' && luxeAuras[i].visible) {
+      luxeAuras[i].position.copy(m.position);
+      luxeAuras[i].material.opacity = 0.45 + Math.sin(t * 0.9 + i * 1.4) * 0.15;
+      luxeAuras[i].scale.setScalar(m.userData.size * 3.0 * pu);
+    }
     // Sync hit mesh positions for touch targets
     if (isTouchDevice && hitMeshes[i]) hitMeshes[i].position.copy(m.position);
   });
@@ -2259,10 +2663,9 @@ function tick() {
   ren.render(scene, cam);
 }
 
-// ════════════════════════════════════════════════════════
-//  START
-// ════════════════════════════════════════════════════════
 boot();
 </script>
 </body>
 </html>
+
+// ══════════════════════════════════════════════════�
