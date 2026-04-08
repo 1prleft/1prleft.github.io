@@ -263,7 +263,7 @@ canvas { display: block; touch-action: none; outline: none; }
 
 /* NEBULA ENTER HINT */
 #enter-hint {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%, calc(-50% - 58px));
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
   font-family: 'Courier New', monospace; font-size: 13px; color: rgba(255,240,210,0.0);
   letter-spacing: 4px; text-transform: uppercase; pointer-events: auto; z-index: 15;
   text-shadow: 0 0 20px rgba(255,200,100,0.6), 0 0 40px rgba(255,150,50,0.3);
@@ -474,7 +474,7 @@ canvas { display: block; touch-action: none; outline: none; }
   }
   .hint { display: none; }
   .nbtn { width: 44px; height: 44px; font-size: 1.15rem; }
-  #settings-toggle { width: 34px; height: 34px; font-size: 0.85rem; }
+  #settings-toggle { font-size: 0.85rem; }
 
   #sidenav { display: none; }
   #settings-panel { bottom: 3.5rem; left: 1rem; width: 230px; }
@@ -1134,6 +1134,7 @@ let prevEnterEased = 0;
 let transitionOrbScale = 1.0; // scales inner orbs during enter transition
 let labelFadeStart = -1;
 const LABEL_FADE_DUR = 0.55;
+let enterHintEl = null;
 let warpCanvas, warpCtx, warpStreakData = [];
 
 const outerOrbit = { theta: 0, phi: Math.PI / 2, radius: 320 };
@@ -1534,6 +1535,7 @@ function boot() {
   timer = new THREE.Timer();
   timer.connect(document);
 
+  enterHintEl = document.getElementById('enter-hint');
   initWarpCanvas();
   buildOuterNebula();
   buildStars();
@@ -2090,6 +2092,7 @@ function bindEvents() {
     downX = e.clientX; downY = e.clientY;
     downTime = Date.now(); isTapDrag = false;
     if (viewState === 'inner') autoDrift = false;
+    if (viewState === 'outer') { enterHint.classList.remove('visible'); isHoveringOrb = false; }
   });
 
   // === POINTER MOVE ===
@@ -2098,9 +2101,9 @@ function bindEvents() {
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     }
 
-    // Outer hover (desktop only)
+    // Outer hover (desktop only) — hide when dragging/orbiting
     if (viewState === 'outer' && !isTouchDevice) {
-      const hovering = checkOuterHover(e.clientX, e.clientY);
+      const hovering = checkOuterHover(e.clientX, e.clientY) && !isTapDrag;
       if (hovering !== isHoveringOrb) {
         isHoveringOrb = hovering;
         el.style.cursor = hovering ? 'pointer' : 'grab';
@@ -2578,6 +2581,19 @@ function tick() {
   if (viewState === 'outer') {
     if (!isDrag) outerOrbit.theta += 0.0008;
     outerCamFromOrbit();
+
+    // Pin enter-hint to the star core in screen space, scale with zoom
+    if (enterHintEl) {
+      const starNDC = new THREE.Vector3(0, 0, 0).project(cam);
+      const sx = (starNDC.x * 0.5 + 0.5) * innerWidth;
+      const sy = (-starNDC.y * 0.5 + 0.5) * innerHeight;
+      const s = Math.min(1.8, Math.max(0.5, 320 / outerOrbit.radius));
+      // Offset upward in screen space so text clears the star glow, scaled with zoom
+      const yOff = -52 * s;
+      enterHintEl.style.left = sx + 'px';
+      enterHintEl.style.top  = (sy + yOff) + 'px';
+      enterHintEl.style.transform = `translate(-50%, -50%) scale(${s.toFixed(3)})`;
+    }
   }
   else if (viewState === 'entering') {
     processEnterTransition(t);
