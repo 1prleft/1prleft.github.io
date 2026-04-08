@@ -395,6 +395,26 @@ canvas { display: block; touch-action: none; outline: none; }
 }
 .drift-speed-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); border-color: var(--border-hover); }
 .drift-speed-btn.active { color: var(--text-bright); border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); }
+.fly-speed-row { display: flex; align-items: center; gap: 8px; }
+.fly-speed-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 3px; border-radius: 3px;
+  background: rgba(255,255,255,0.1); outline: none; cursor: pointer;
+}
+.fly-speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--text-bright); cursor: pointer;
+  box-shadow: 0 0 4px rgba(255,255,255,0.3);
+}
+.fly-speed-slider::-moz-range-thumb {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--text-bright); border: none; cursor: pointer;
+}
+.fly-speed-val {
+  font-family: var(--mono); font-size: 0.55rem;
+  color: var(--text-muted); min-width: 2.8ch; text-align: right;
+}
 .space-hex-input {
   margin-top: 7px; width: 100%;
   padding: 5px 10px; border-radius: 6px;
@@ -480,7 +500,8 @@ canvas { display: block; touch-action: none; outline: none; }
   #settings-panel { bottom: 3.5rem; left: 1rem; width: 230px; }
 
   .plnk { padding: 8px 0; font-size: 0.85rem; }
-  .color-chip { width: 32px; height: 32px; }
+  .color-chip-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .color-chip { width: auto; height: auto; aspect-ratio: 1; }
 }
 
 /* Extra small screens */
@@ -548,7 +569,7 @@ canvas { display: block; touch-action: none; outline: none; }
     <button class="nbtn" id="nav-zout" title="Zoom out">&minus;</button>
     <button class="nbtn" id="settings-toggle" title="Appearance" style="transition: transform 0.3s ease;">&#9881;</button>
   </div>
-  <div class="hint">Scroll to zoom through the nebula</div>
+  <div class="hint">Scroll to zoom through the nebula | Click and hold to fly</div>
 </div>
 
 <div id="settings-panel">
@@ -569,8 +590,15 @@ canvas { display: block; touch-action: none; outline: none; }
     <input type="color" id="star-color-picker" class="native-color-picker" value="#fff8e7">
   </div>
   <div class="settings-section">
-    <span class="settings-label">Drift Speed</span>
+    <span class="settings-label">Orbit Speed</span>
     <div class="drift-speed-row" id="drift-speed-row"></div>
+  </div>
+  <div class="settings-section">
+    <span class="settings-label">Fly Speed</span>
+    <div class="fly-speed-row">
+      <input type="range" class="fly-speed-slider" id="fly-speed-slider" min="0.11" max="0.77" step="0.01" value="0.33">
+      <span class="fly-speed-val" id="fly-speed-val">0.33</span>
+    </div>
   </div>
 </div>
 
@@ -1142,6 +1170,8 @@ const innerOrbit = { theta: 0, phi: 1.227, dist: 149, tx: 0, ty: 0, tz: 0 };
 
 let isDrag = false, dragBtn = -1, px = 0, py = 0, downX = 0, downY = 0, downTime = 0;
 let isTapDrag = false;
+let isFlying = false;
+let flySpeed = 0.33;
 let autoDrift = true;
 let driftSpeed = 0.0003;
 let driftEnabled = true;
@@ -1154,6 +1184,8 @@ let outerClickTarget;
 let isHoveringOrb = false;
 let isMobile = false;
 let isTouchDevice = false;
+
+const HOLD_FLY_THRESH = 111; // ms of still hold before fly-toward activates
 
 // Multi-touch pinch tracking
 const activePointers = new Map();
@@ -1494,6 +1526,14 @@ function buildSettingsUI() {
     });
     updateDriftBtns();
   }
+  const flySlider = document.getElementById('fly-speed-slider');
+  const flyVal = document.getElementById('fly-speed-val');
+  if (flySlider && flyVal) {
+    flySlider.addEventListener('input', () => {
+      flySpeed = parseFloat(flySlider.value);
+      flyVal.textContent = flySpeed.toFixed(2);
+    });
+  }
   const toggle = document.getElementById('settings-toggle');
   const panel = document.getElementById('settings-panel');
   if (toggle && panel) {
@@ -1522,6 +1562,7 @@ function boot() {
   scene.background = new THREE.Color(0x06060d);
 
   cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1200);
+  outerOrbit.radius = isMobile ? 700 : 555;
   outerCamFromOrbit();
 
   ren = new THREE.WebGLRenderer({ antialias: !isMobile });
@@ -1672,10 +1713,10 @@ function buildStars() {
   }
   const tex = createStarTexture();
   // Reduce star count on mobile
-  const starCount1 = isMobile ? 2500 : 4000;
-  const starCount2 = isMobile ? 500 : 800;
+  const starCount1 = isMobile ? 3200 : 4000;
+  const starCount2 = isMobile ? 5000 : 8000;
   [
-    { count: starCount1, spread: 500, size: 0.7 },
+    { count: starCount1, spread: 500, size: 1.1 },
     { count: starCount2, spread: 500, size: 1.4 },
   ].forEach(({ count, spread, size }) => {
     const positions = new Float32Array(count * 3);
@@ -1729,56 +1770,132 @@ function buildInnerOrbs() {
   bdCtx.fillStyle = bdGr; bdCtx.fillRect(0,0,128,128);
   const backdropTex = new THREE.CanvasTexture(bdCv);
 
-  // ── Inferno aura texture: fire corona ring ─────────────────
+  // ── Inferno aura: fiery solar-surface with prominences ─────
   const iaCv = document.createElement('canvas');
   iaCv.width = iaCv.height = 256;
   const iax = iaCv.getContext('2d');
-  // Ring positioned in outer 35% of canvas so it hugs the orb at tight scale
-  const iag = iax.createRadialGradient(128,128,0,128,128,128);
-  iag.addColorStop(0,    'rgba(0,0,0,0)');
-  iag.addColorStop(0.63, 'rgba(0,0,0,0)');
-  iag.addColorStop(0.68, 'rgba(255,90,5,0.55)');
-  iag.addColorStop(0.78, 'rgba(255,185,15,0.95)');
-  iag.addColorStop(0.88, 'rgba(255,60,0,0.55)');
-  iag.addColorStop(0.96, 'rgba(160,15,0,0.15)');
-  iag.addColorStop(1.0,  'rgba(0,0,0,0)');
-  iax.fillStyle = iag; iax.fillRect(0,0,256,256);
+  const icx = 128, icy = 128, orbR = 80; // orbR = sprite half-canvas / sprite_scale_factor
+
+  // ① Jagged, non-uniform fire band at the orb surface
+  for (let deg = 0; deg < 360; deg += 1.5) {
+    const n1 = Math.sin(deg * 0.11 + 1.3) * Math.sin(deg * 0.23 + 0.7);
+    const n2 = Math.sin(deg * 0.41 + 2.1) * Math.cos(deg * 0.17 + 0.3);
+    const bandR = orbR + 2 + n1 * 8 + n2 * 5;
+    const w = 8 + Math.abs(Math.sin(deg * 0.37 + 0.5)) * 12 + Math.abs(Math.sin(deg * 0.71 + 1.2)) * 6;
+    const hue = 22 + Math.sin(deg * 0.13 + 0.4) * 18;
+    const lum = 58 + Math.sin(deg * 0.29 + 1.1) * 22;
+    const alpha = 0.4 + Math.abs(Math.sin(deg * 0.47 + 0.8)) * 0.45;
+    iax.beginPath();
+    iax.arc(icx, icy, bandR, (deg - 1) * Math.PI / 180, (deg + 1) * Math.PI / 180);
+    iax.strokeStyle = `hsla(${hue}, 100%, ${lum}%, ${alpha})`;
+    iax.lineWidth = w; iax.lineCap = 'round'; iax.stroke();
+  }
+
+  // ② Solar prominences — curved flame tongues radiating outward
+  const numProms = 20;
+  for (let p = 0; p < numProms; p++) {
+    const baseAngle = (p / numProms) * Math.PI * 2 + Math.sin(p * 1.618) * 0.55;
+    const promLen = 10 + Math.abs(Math.sin(p * 2.71)) * 32;
+    const baseR = orbR + Math.abs(Math.sin(p * 3.14)) * 5;
+    const bx = icx + Math.cos(baseAngle) * baseR;
+    const by = icy + Math.sin(baseAngle) * baseR;
+    const ex = icx + Math.cos(baseAngle) * (baseR + promLen);
+    const ey = icy + Math.sin(baseAngle) * (baseR + promLen);
+    const perp = baseAngle + Math.PI / 2;
+    const cv = Math.sin(p * 2.31) * 11;
+    const cpx = (bx + ex) / 2 + Math.cos(perp) * cv;
+    const cpy = (by + ey) / 2 + Math.sin(perp) * cv;
+    const promW = 2 + Math.abs(Math.sin(p * 1.91)) * 7;
+    const hue = 28 + Math.abs(Math.sin(p * 0.77)) * 22;
+    const pg = iax.createLinearGradient(bx, by, ex, ey);
+    pg.addColorStop(0,   `hsla(${hue + 30}, 100%, 88%, 0.95)`);
+    pg.addColorStop(0.3, `hsla(${hue},      100%, 62%, 0.75)`);
+    pg.addColorStop(0.7, `hsla(${hue - 10}, 100%, 46%, 0.3)`);
+    pg.addColorStop(1,   'rgba(200,30,0,0)');
+    iax.beginPath(); iax.moveTo(bx, by);
+    iax.quadraticCurveTo(cpx, cpy, ex, ey);
+    iax.strokeStyle = pg; iax.lineWidth = promW; iax.lineCap = 'round'; iax.stroke();
+  }
+
+  // ③ Hot inner rim — bright white-orange glow right at the orb edge
+  const rimG = iax.createRadialGradient(icx, icy, 0, icx, icy, 128);
+  rimG.addColorStop(0,     'rgba(0,0,0,0)');
+  rimG.addColorStop(0.575, 'rgba(0,0,0,0)');
+  rimG.addColorStop(0.625, 'rgba(255,240,160,0.6)');
+  rimG.addColorStop(0.69,  'rgba(255,120,10,0.78)');
+  rimG.addColorStop(0.80,  'rgba(220,40,0,0.28)');
+  rimG.addColorStop(1.0,   'rgba(0,0,0,0)');
+  iax.fillStyle = rimG; iax.fillRect(0, 0, 256, 256);
+
+  // ④ Granulation hot-spots (solar surface texture)
+  for (let g = 0; g < 60; g++) {
+    const ga = Math.sin(g * 1.618 + 0.5) * Math.PI * 2;
+    const grr = orbR + 2 + Math.abs(Math.sin(g * 7.31 + 0.3)) * 28;
+    const gxx = icx + Math.cos(ga) * grr;
+    const gyy = icy + Math.sin(ga) * grr;
+    const gRad = 1.5 + Math.abs(Math.sin(g * 5.17)) * 5;
+    const gAlpha = 0.2 + Math.abs(Math.sin(g * 3.41)) * 0.55;
+    const gHue = 18 + Math.abs(Math.sin(g * 1.87)) * 35;
+    const gg2 = iax.createRadialGradient(gxx, gyy, 0, gxx, gyy, gRad);
+    gg2.addColorStop(0, `hsla(${gHue + 40}, 100%, 92%, ${gAlpha})`);
+    gg2.addColorStop(1, `hsla(${gHue}, 100%, 52%, 0)`);
+    iax.fillStyle = gg2; iax.beginPath(); iax.arc(gxx, gyy, gRad, 0, Math.PI * 2); iax.fill();
+  }
   const infernoAuraTex = new THREE.CanvasTexture(iaCv);
 
-  // ── Luxe aura texture: rainbow soap-film ring ───────────────
+  // ── Luxe aura: soapy bubbly iridescent band ─────────────────
   const laCv = document.createElement('canvas');
   laCv.width = laCv.height = 256;
   const lax = laCv.getContext('2d');
-  // Rainbow arc segments cycling full hue around the ring
-  const ringR = 90, ringW = 26;
-  for (let deg = 0; deg < 360; deg += 3) {
-    const hue = (deg * 1.0) % 360;
-    lax.beginPath();
-    lax.arc(128, 128, ringR, (deg - 2) * Math.PI / 180, (deg + 2) * Math.PI / 180);
-    lax.strokeStyle = `hsla(${hue}, 100%, 78%, 0.88)`;
-    lax.lineWidth = ringW;
-    lax.stroke();
+  const lcx = 128, lcy = 128, orbRL = 80;
+
+  // ① Bubble clusters: varied sizes in a loose ring around the orb
+  const numBubbles = 42;
+  for (let b = 0; b < numBubbles; b++) {
+    const angle = (b / numBubbles) * Math.PI * 2 + Math.sin(b * 2.618) * 0.75;
+    const dist = orbRL + 3 + Math.abs(Math.sin(b * 3.14 + 1.1)) * 28 + Math.abs(Math.sin(b * 7.31)) * 10;
+    const bx = lcx + Math.cos(angle) * dist;
+    const by = lcy + Math.sin(angle) * dist;
+    const bRad = 3.5 + Math.abs(Math.sin(b * 2.71)) * 10;
+    const hue  = (b / numBubbles * 360 + Math.sin(b * 1.41) * 45) % 360;
+    const hue2 = (hue + 80 + Math.sin(b * 2.31) * 35) % 360;
+    // Off-centre highlight gives a 3-D soap-bubble look
+    const bg = lax.createRadialGradient(bx - bRad * 0.3, by - bRad * 0.3, 0, bx, by, bRad);
+    bg.addColorStop(0,    `hsla(${hue2 + 40}, 80%, 97%, 0.75)`);
+    bg.addColorStop(0.25, `hsla(${hue2},      100%, 82%, 0.6)`);
+    bg.addColorStop(0.6,  `hsla(${hue},       100%, 72%, 0.48)`);
+    bg.addColorStop(0.85, `hsla(${(hue + 180) % 360}, 75%, 62%, 0.28)`);
+    bg.addColorStop(1,    `hsla(${hue}, 55%, 50%, 0.06)`);
+    lax.beginPath(); lax.arc(bx, by, bRad, 0, Math.PI * 2);
+    lax.fillStyle = bg; lax.fill();
+    // Thin iridescent rim
+    lax.beginPath(); lax.arc(bx, by, bRad, 0, Math.PI * 2);
+    lax.strokeStyle = `hsla(${(hue + 60) % 360}, 100%, 92%, 0.32)`;
+    lax.lineWidth = 0.9; lax.stroke();
   }
-  // Pearl inner shimmer on top
-  lax.globalCompositeOperation = 'source-over';
-  const lag = lax.createRadialGradient(128,128,0,128,128,128);
-  lag.addColorStop(0,    'rgba(255,255,255,0)');
-  lag.addColorStop(0.60, 'rgba(255,255,255,0)');
-  lag.addColorStop(0.70, 'rgba(255,245,255,0.3)');
-  lag.addColorStop(0.82, 'rgba(200,220,255,0.5)');
-  lag.addColorStop(1.0,  'rgba(255,255,255,0)');
-  lax.fillStyle = lag; lax.fillRect(0,0,256,256);
-  // Mask: fade edges so only the ring zone shows
-  const lmg = lax.createRadialGradient(128,128,0,128,128,128);
-  lmg.addColorStop(0,    'rgba(0,0,0,0)');
-  lmg.addColorStop(0.58, 'rgba(0,0,0,0)');
-  lmg.addColorStop(0.66, 'rgba(255,255,255,0.7)');
-  lmg.addColorStop(0.78, 'rgba(255,255,255,1.0)');
-  lmg.addColorStop(0.90, 'rgba(255,255,255,0.5)');
-  lmg.addColorStop(1.0,  'rgba(0,0,0,0)');
-  lax.globalCompositeOperation = 'destination-in';
-  lax.fillStyle = lmg; lax.fillRect(0,0,256,256);
-  lax.globalCompositeOperation = 'source-over';
+
+  // ② Tiny micro-bubbles for a finer foam texture in the same band
+  for (let mb = 0; mb < 55; mb++) {
+    const angle = Math.sin(mb * 1.618 + 0.7) * Math.PI * 2;
+    const dist = orbRL + 1 + Math.abs(Math.sin(mb * 5.77 + 0.3)) * 35;
+    const bx = lcx + Math.cos(angle) * dist;
+    const by = lcy + Math.sin(angle) * dist;
+    const bRad = 1 + Math.abs(Math.sin(mb * 3.21)) * 2.5;
+    const hue = (mb * 43 + 120) % 360;
+    lax.beginPath(); lax.arc(bx, by, bRad, 0, Math.PI * 2);
+    lax.strokeStyle = `hsla(${hue}, 100%, 88%, ${0.15 + Math.abs(Math.sin(mb * 2.11)) * 0.35})`;
+    lax.lineWidth = 0.6; lax.stroke();
+  }
+
+  // ③ Soft pearl shimmer overlay across the band
+  const shimG = lax.createRadialGradient(lcx, lcy, 0, lcx, lcy, 128);
+  shimG.addColorStop(0,    'rgba(0,0,0,0)');
+  shimG.addColorStop(0.56, 'rgba(0,0,0,0)');
+  shimG.addColorStop(0.64, 'rgba(215,230,255,0.22)');
+  shimG.addColorStop(0.74, 'rgba(255,210,245,0.14)');
+  shimG.addColorStop(0.86, 'rgba(210,255,230,0.07)');
+  shimG.addColorStop(1.0,  'rgba(0,0,0,0)');
+  lax.fillStyle = shimG; lax.fillRect(0, 0, 256, 256);
   const luxeAuraTex = new THREE.CanvasTexture(laCv);
 
   NL.forEach((d, i) => {
@@ -2045,10 +2162,18 @@ function processFly() {
     const dz = cam.position.z - innerOrbit.tz;
     innerOrbit.dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
     innerOrbit.phi = Math.acos(Math.max(-1, Math.min(1, dy / innerOrbit.dist)));
-    driftBasePhi = innerOrbit.phi;
+    driftBasePhi = innerOrbit.phi - Math.sin(timer.getElapsed() * 0.02) * 0.03;
     innerOrbit.theta = Math.atan2(dx, dz);
     flyA = null;
   }
+}
+
+function checkOuterHover(cx, cy) {
+  if (viewState !== 'outer') return false;
+  mp.x = (cx / innerWidth)*2-1;
+  mp.y = -(cy / innerHeight)*2+1;
+  rc.setFromCamera(mp, cam);
+  return rc.intersectObject(outerClickTarget).length > 0;
 }
 
 // ============================================================
@@ -2060,37 +2185,34 @@ function bindEvents() {
   document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
   document.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
 
-  // Prevent double-tap zoom on iOS
+  // Prevent double-tap zoom on iOS / Android
   let lastTapTime = 0;
   document.addEventListener('touchstart', e => {
     const now = Date.now();
     if (now - lastTapTime < 350) e.preventDefault();
     lastTapTime = now;
   }, { passive: false });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
 
   const el = ren.domElement;
   const enterHint = document.getElementById('enter-hint');
-  let canvasPointerActive = false;
-
-  function checkOuterHover(cx, cy) {
-    if (viewState !== 'outer') return false;
-    mp.x = (cx / innerWidth)*2-1;
-    mp.y = -(cy / innerHeight)*2+1;
-    rc.setFromCamera(mp, cam);
-    return rc.intersectObject(outerClickTarget).length > 0;
-  }
 
   // === POINTER DOWN ===
   el.addEventListener('pointerdown', e => {
     e.preventDefault();
-    canvasPointerActive = true;
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (activePointers.size === 2) prevPinchDist = null; // ensure clean start for each new pinch
     el.setPointerCapture(e.pointerId);
 
     isDrag = true; dragBtn = e.button;
     px = e.clientX; py = e.clientY;
     downX = e.clientX; downY = e.clientY;
-    downTime = Date.now(); isTapDrag = false;
+    downTime = Date.now(); isTapDrag = false; isFlying = false;
     if (viewState === 'inner') autoDrift = false;
     if (viewState === 'outer') { enterHint.classList.remove('visible'); isHoveringOrb = false; }
   });
@@ -2101,9 +2223,9 @@ function bindEvents() {
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     }
 
-    // Outer hover (desktop only) — hide when dragging/orbiting
-    if (viewState === 'outer' && !isTouchDevice) {
-      const hovering = checkOuterHover(e.clientX, e.clientY) && !isTapDrag;
+    // Outer hover (desktop only) — suppress entirely while pointer is held
+    if (viewState === 'outer' && !isTouchDevice && !isDrag) {
+      const hovering = checkOuterHover(e.clientX, e.clientY);
       if (hovering !== isHoveringOrb) {
         isHoveringOrb = hovering;
         el.style.cursor = hovering ? 'pointer' : 'grab';
@@ -2127,7 +2249,7 @@ function bindEvents() {
       if (prevPinchDist !== null) {
         const delta = prevPinchDist - curDist;
         if (viewState === 'outer') {
-          outerOrbit.radius = Math.max(200, Math.min(500, outerOrbit.radius + delta * 0.4));
+          outerOrbit.radius = Math.max(200, Math.min(800, outerOrbit.radius + delta * 0.4));
         } else if (viewState === 'inner') {
           innerOrbit.dist = Math.max(8, Math.min(220, innerOrbit.dist + delta * 0.4));
         }
@@ -2141,7 +2263,16 @@ function bindEvents() {
     if (isDrag && isTapDrag && !flyA && activePointers.size <= 1) {
       const dx = e.clientX - px;
       const dy = e.clientY - py;
-      if (viewState === 'outer') {
+      if (isFlying) {
+        // Drag to steer while flying
+        if (viewState === 'outer') {
+          outerOrbit.theta -= dx * 0.005;
+          outerOrbit.phi = Math.max(0.1, Math.min(Math.PI-0.1, outerOrbit.phi - dy * 0.005));
+        } else if (viewState === 'inner') {
+          innerOrbit.theta -= dx * 0.005;
+          innerOrbit.phi = Math.max(0.15, Math.min(Math.PI-0.15, innerOrbit.phi + dy * 0.005));
+        }
+      } else if (viewState === 'outer') {
         outerOrbit.theta -= dx * 0.005;
         outerOrbit.phi = Math.max(0.1, Math.min(Math.PI-0.1, outerOrbit.phi - dy * 0.005));
       } else if (viewState === 'inner') {
@@ -2166,15 +2297,15 @@ function bindEvents() {
     if (viewState === 'inner' && !isTouchDevice) updateInnerHover(e);
   });
 
-  // === POINTER UP — THE CLICK BUG FIX ===
-  window.addEventListener('pointerup', e => {
-    if (!canvasPointerActive) return;  // Only process if pointer started on canvas
-    canvasPointerActive = false;
+  // === POINTER UP ===
+  // Bound to el (not window) — setPointerCapture guarantees delivery here
+  el.addEventListener('pointerup', e => {
+    if (!activePointers.has(e.pointerId)) return;
     activePointers.delete(e.pointerId);
     if (activePointers.size < 2) prevPinchDist = null;
 
-    // ** BUG FIX: Update mp from this event BEFORE raycasting **
-    if (!isTapDrag && Date.now() - downTime < 300) {
+    // Tap detection: only fire when the last canvas pointer lifts (single-touch tap)
+    if (activePointers.size === 0 && !isTapDrag && Date.now() - downTime < 300) {
       mp.x = (e.clientX / innerWidth) * 2 - 1;
       mp.y = -(e.clientY / innerHeight) * 2 + 1;
 
@@ -2185,32 +2316,55 @@ function bindEvents() {
       }
     }
 
-    isDrag = false;
-    isTapDrag = false;
-    if (viewState === 'inner') {
-      driftBasePhi = innerOrbit.phi;
-      autoDrift = driftEnabled;
+    // Reset drag state only when all pointers are released
+    if (activePointers.size === 0) {
+      isDrag = false;
+      isTapDrag = false;
+      isFlying = false;
+      if (viewState === 'inner') {
+        driftBasePhi = innerOrbit.phi - Math.sin(timer.getElapsed() * 0.02) * 0.03;
+        autoDrift = driftEnabled;
+      }
     }
   });
 
   // === POINTER CANCEL (edge case for mobile) ===
-  window.addEventListener('pointercancel', e => {
-    if (!canvasPointerActive) return;
-    canvasPointerActive = false;
+  el.addEventListener('pointercancel', e => {
+    if (!activePointers.has(e.pointerId)) return;
     activePointers.delete(e.pointerId);
     if (activePointers.size < 2) prevPinchDist = null;
-    isDrag = false;
-    if (viewState === 'inner') {
-      driftBasePhi = innerOrbit.phi;
-      autoDrift = driftEnabled;
+    if (activePointers.size === 0) {
+      isDrag = false;
+      isTapDrag = false;
+      isFlying = false;
+      if (viewState === 'inner') {
+        driftBasePhi = innerOrbit.phi - Math.sin(timer.getElapsed() * 0.02) * 0.03;
+        autoDrift = driftEnabled;
+      }
     }
   });
+
+  // === SAFETY RESET — clears stuck drag state if page loses focus ===
+  const resetDragState = () => {
+    if (!isDrag && activePointers.size === 0) return;
+    activePointers.clear();
+    prevPinchDist = null;
+    isDrag = false;
+    isTapDrag = false;
+    isFlying = false;
+    if (viewState === 'inner') {
+      driftBasePhi = innerOrbit.phi - Math.sin(timer.getElapsed() * 0.02) * 0.03;
+      autoDrift = driftEnabled;
+    }
+  };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) resetDragState(); });
+  window.addEventListener('blur', resetDragState);
 
   // === WHEEL ZOOM ===
   el.addEventListener('wheel', e => {
     if (flyA) return;
     if (viewState === 'outer') {
-      outerOrbit.radius = Math.max(200, Math.min(500, outerOrbit.radius + e.deltaY * 0.3));
+      outerOrbit.radius = Math.max(200, Math.min(800, outerOrbit.radius + e.deltaY * 0.3));
     } else if (viewState === 'inner') {
       innerOrbit.dist = Math.max(8, Math.min(220, innerOrbit.dist + e.deltaY * 0.06));
     }
@@ -2580,6 +2734,20 @@ function tick() {
 
   if (viewState === 'outer') {
     if (!isDrag) outerOrbit.theta += 0.0008;
+    // Hold-to-fly: hold still for HOLD_FLY_THRESH ms → orbit toward held direction
+    // Once flying, dragging steers instead of cancelling flight
+    if (isDrag && (isFlying || !isTapDrag) && activePointers.size === 1 && !flyA) {
+      if (Date.now() - downTime > HOLD_FLY_THRESH) {
+        isFlying = true;
+        const ptr = [...activePointers.values()][0];
+        if (ptr && !checkOuterHover(ptr.x, ptr.y) && !isTapDrag) {
+          const cx = ptr.x / innerWidth - 0.5;
+          const cy = ptr.y / innerHeight - 0.5;
+          outerOrbit.theta += cx * 0.018;
+          outerOrbit.phi = Math.max(0.1, Math.min(Math.PI - 0.1, outerOrbit.phi + cy * 0.018));
+        }
+      }
+    }
     outerCamFromOrbit();
 
     // Pin enter-hint to the star core in screen space, scale with zoom
@@ -2603,6 +2771,32 @@ function tick() {
     if (autoDrift && driftEnabled && !flyA && !isDrag) {
       innerOrbit.theta += driftSpeed;
       innerOrbit.phi = driftBasePhi + Math.sin(t * 0.02) * 0.03;
+    }
+    // Hold-to-fly: hold still → slowly fly toward held direction
+    // Once flying, dragging steers instead of cancelling flight
+    if (isDrag && (isFlying || !isTapDrag) && activePointers.size === 1 && !flyA) {
+      if (Date.now() - downTime > HOLD_FLY_THRESH) {
+        isFlying = true;
+        const ptr = [...activePointers.values()][0];
+        if (ptr) {
+          if (!isTapDrag) {
+            const cx = ptr.x / innerWidth - 0.5;
+            const cy = ptr.y / innerHeight - 0.5;
+            innerOrbit.theta += cx * 0.012;
+            innerOrbit.phi = Math.max(0.15, Math.min(Math.PI - 0.15, innerOrbit.phi + cy * 0.012));
+          }
+          // Advance the orbit target point along the look direction so the
+          // camera flies through the scene without getting stuck at the center
+          const fwdX = -Math.sin(innerOrbit.phi) * Math.sin(innerOrbit.theta);
+          const fwdY = -Math.cos(innerOrbit.phi);
+          const fwdZ = -Math.sin(innerOrbit.phi) * Math.cos(innerOrbit.theta);
+          innerOrbit.tx += fwdX * flySpeed;
+          innerOrbit.ty += fwdY * flySpeed;
+          innerOrbit.tz += fwdZ * flySpeed;
+          // Smoothly approach a comfortable cockpit distance
+          innerOrbit.dist += (35 - innerOrbit.dist) * 0.04;
+        }
+      }
     }
     if (!flyA) innerCamFromOrbit();
 
@@ -2647,18 +2841,21 @@ function tick() {
     backdrops[i].scale.setScalar(m.userData.size * 6.5 * tScale);
     glows[i].position.copy(m.position);
     glows[i].scale.setScalar(m.userData.size * 11 * pu * tScale);
-    // Inferno fire aura: flickers and breathes
+    // Inferno fire aura: flickers, breathes, and slowly rotates for organic fire
     if (currentPalette === 'inferno' && infernoAuras[i].visible) {
       infernoAuras[i].position.copy(m.position);
       const flicker = 0.52 + Math.sin(t * 4.1 + i * 2.3) * 0.14 + Math.sin(t * 7.7 + i * 1.1) * 0.06;
       infernoAuras[i].material.opacity = flicker;
       infernoAuras[i].scale.setScalar(m.userData.size * (3.2 + Math.sin(t * 2.8 + i * 0.9) * 0.12) * pu);
+      infernoAuras[i].material.rotation += 0.003 + Math.sin(t * 0.5 + i) * 0.0008;
     }
-    // Luxe soap-film aura: slow iridescent pulse
+    // Luxe soap-film aura: slow bounce, iridescent pulse, and gentle rotation
     if (currentPalette === 'luxe' && luxeAuras[i].visible) {
       luxeAuras[i].position.copy(m.position);
       luxeAuras[i].material.opacity = 0.45 + Math.sin(t * 0.9 + i * 1.4) * 0.15;
-      luxeAuras[i].scale.setScalar(m.userData.size * 3.0 * pu);
+      const bubbleBounce = 1.0 + Math.sin(t * 1.3 + i * 0.8) * 0.04 + Math.sin(t * 2.1 + i * 1.7) * 0.02;
+      luxeAuras[i].scale.setScalar(m.userData.size * 3.0 * pu * bubbleBounce);
+      luxeAuras[i].material.rotation += 0.004 + Math.sin(t * 0.3 + i * 0.7) * 0.0015;
     }
     // Sync hit mesh positions for touch targets
     if (isTouchDevice && hitMeshes[i]) hitMeshes[i].position.copy(m.position);
