@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WHO is this guy, PHIL?</title>
+<title>WHO is Phil Richards?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600&family=Crimson+Pro:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -22,9 +22,9 @@
   --skills: #4ab8c2;
   --education: #5cc98e;
   --about: #e05577;
-  --display: 'Playfair Display', Georgia, serif;
-  --body: 'Outfit', system-ui, sans-serif;
-  --mono: 'IBM Plex Mono', monospace;
+  --display: 'Space Grotesk', system-ui, sans-serif;
+  --body: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
 }
 
 html, body {
@@ -75,9 +75,9 @@ canvas { display: block; touch-action: none; }
 #topbar > * { pointer-events: auto; }
 .brand {
   font-family: var(--display); font-size: 1.3rem;
-  font-weight: 500; color: var(--text-bright);
+  font-weight: 500; color: var(--portfolio);
 }
-.brand em { font-style: italic; color: var(--portfolio); }
+.brand em { font-style: italic; }
 
 /* FILTERS */
 #filters {
@@ -203,6 +203,7 @@ canvas { display: block; touch-action: none; }
   touch-action: manipulation;
 }
 .nbtn:hover { background: rgba(255,255,255,0.06); color: var(--text-bright); }
+.nbtn.active { background: rgba(255,255,255,0.06); color: var(--text-bright); border-color: var(--border-hover); }
 .hint {
   font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.06em;
   animation: hfade 7s ease 2.5s forwards; opacity: 0;
@@ -264,26 +265,19 @@ canvas { display: block; touch-action: none; }
 /* ═══════════════════════════════════════════
    SETTINGS PANEL (hidden customizer)
    ═══════════════════════════════════════════ */
-#settings-toggle {
-  position: fixed; bottom: 1.25rem; right: 2rem; z-index: 30;
-  width: 32px; height: 32px; border-radius: 50%;
-  border: 1px solid var(--border); background: rgba(255,255,255,0.02);
-  backdrop-filter: blur(10px); color: var(--text-muted);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; transition: all 0.3s ease;
-  opacity: 0.4;
-}
-#settings-toggle:hover { opacity: 1; background: rgba(255,255,255,0.06); color: var(--text-bright); border-color: var(--border-hover); }
-#settings-toggle.active { opacity: 1; color: var(--text-bright); transform: rotate(60deg); }
+#settings-toggle.active { transform: rotate(60deg); }
 
 #settings-panel {
-  position: fixed; bottom: 4.5rem; right: 2rem; z-index: 29;
-  width: 260px; padding: 1.2rem;
+  position: fixed; bottom: 4.5rem; left: 2rem; z-index: 29;
+  width: 270px; padding: 1.2rem;
+  max-height: calc(100vh - 7rem); overflow-y: auto;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 12px; backdrop-filter: blur(40px) saturate(1.3);
   opacity: 0; pointer-events: none; transform: translateY(10px) scale(0.96);
   transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
+#settings-panel::-webkit-scrollbar { width: 3px; }
+#settings-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
 #settings-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
 
 .settings-section { margin-bottom: 1rem; }
@@ -327,6 +321,67 @@ canvas { display: block; touch-action: none; }
 }
 .font-option:hover { color: var(--text); background: rgba(255,255,255,0.03); border-color: var(--border); }
 .font-option.active { color: var(--text-bright); border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); }
+
+.color-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.color-chip {
+  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s; flex-shrink: 0;
+}
+.color-chip:hover { transform: scale(1.15); }
+.color-chip.active { border-color: var(--text-bright); }
+
+.drift-speed-row { display: flex; gap: 4px; }
+.drift-speed-btn {
+  flex: 1; padding: 5px 0; border-radius: 6px; cursor: pointer;
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-muted);
+  border: 1px solid var(--border); background: rgba(255,255,255,0.01);
+  transition: all 0.2s; text-align: center;
+}
+.drift-speed-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); border-color: var(--border-hover); }
+.drift-speed-btn.active { color: var(--text-bright); border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); }
+
+.space-hex-input {
+  margin-top: 7px; width: 100%;
+  padding: 5px 10px; border-radius: 6px;
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.06em;
+  color: var(--text-muted); background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border); outline: none; transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.space-hex-input:focus { border-color: var(--border-hover); color: var(--text); }
+.space-hex-input::placeholder { opacity: 0.4; }
+
+.adv-toggle {
+  cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  user-select: none; margin-bottom: 0 !important;
+}
+.adv-toggle:hover { color: var(--text); }
+.adv-toggle-arrow { font-size: 0.55rem; transition: transform 0.2s; display: inline-block; }
+.adv-toggle.open .adv-toggle-arrow { transform: rotate(90deg); }
+.adv-section { padding-top: 0.65rem; display: none; }
+.adv-section.open { display: block; }
+.slider-row { margin-bottom: 0.55rem; }
+.slider-label-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.28rem;
+}
+.slider-val { color: var(--text); font-size: 0.55rem; }
+input[type=range].adv-slider {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 3px;
+  background: rgba(255,255,255,0.10); border-radius: 3px;
+  outline: none; cursor: pointer;
+}
+input[type=range].adv-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--text-bright); cursor: pointer;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
+.native-color-picker {
+  position: absolute; opacity: 0; pointer-events: none;
+  width: 0; height: 0; border: none; padding: 0;
+}
 
 @media (max-width: 640px) {
   #panel { width: 100vw; max-width: 100vw; }
@@ -380,8 +435,7 @@ canvas { display: block; touch-action: none; }
   #topbar { padding-top: max(0.8rem, env(safe-area-inset-top)); }
   #bbar { padding-bottom: max(0.6rem, env(safe-area-inset-bottom)); }
 
-  #settings-toggle { bottom: 0.6rem; right: 1rem; }
-  #settings-panel { bottom: 3.5rem; right: 1rem; width: 230px; }
+  #settings-panel { bottom: 3.5rem; left: 1rem; width: 230px; }
 }
 </style>
 </head>
@@ -396,7 +450,7 @@ canvas { display: block; touch-action: none; }
 <div id="tip"></div>
 
 <div id="topbar">
-  <div class="brand">Who is <em>Phil Richards </em>?</div>
+  <div class="brand"><span id="brand-prefix">Who is </span><em>Phil Richards </em><span id="brand-suffix">?</span></div>
   <div style="font-size:0.75rem;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;font-family:var(--mono)">philrich.wav@icloud.com <br> 828.228.3607</div>
 </div>
 
@@ -429,12 +483,11 @@ canvas { display: block; touch-action: none; }
     <button class="nbtn" id="nav-home" title="Reset view">&#8962;</button>
     <button class="nbtn" id="nav-zin" title="Zoom in">+</button>
     <button class="nbtn" id="nav-zout" title="Zoom out">&minus;</button>
+    <button class="nbtn" id="settings-toggle" title="Appearance">&#9881;</button>
   </div>
   <div class="hint">Click nodes to explore &middot; Drag to orbit &middot; Scroll to zoom</div>
 </div>
 
-<!-- Settings gear (tucked away) -->
-<button id="settings-toggle" title="Appearance">&#9881;</button>
 <div id="settings-panel">
   <div class="settings-section">
     <span class="settings-label">Color Palette</span>
@@ -444,10 +497,47 @@ canvas { display: block; touch-action: none; }
     <span class="settings-label">Display Font</span>
     <div class="font-list" id="font-list"></div>
   </div>
+  <div class="settings-section" style="position:relative">
+    <span class="settings-label">Space Color</span>
+    <div class="color-chip-row" id="space-color-list"></div>
+    <input class="space-hex-input" id="space-hex-input" type="text" maxlength="7" placeholder="Custom hex e.g. #0a0014" spellcheck="false">
+    <input type="color" id="space-color-picker" class="native-color-picker" value="#06060b">
+  </div>
+  <div class="settings-section" style="position:relative">
+    <span class="settings-label">Star Color</span>
+    <div class="color-chip-row" id="star-color-list"></div>
+    <input class="space-hex-input" id="star-hex-input" type="text" maxlength="7" placeholder="Custom tint e.g. #ffe4b5" spellcheck="false">
+    <input type="color" id="star-color-picker" class="native-color-picker" value="#fff8e7">
+  </div>
+  <div class="settings-section">
+    <span class="settings-label">Drift Speed</span>
+    <div class="drift-speed-row" id="drift-speed-row"></div>
+  </div>
+  <div class="settings-section">
+    <span class="settings-label adv-toggle" id="adv-toggle">Advanced <span class="adv-toggle-arrow">&#9658;</span></span>
+    <div class="adv-section" id="adv-section">
+      <div id="adv-sliders"></div>
+    </div>
+  </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.183.0/build/three.module.min.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ── Three.js r183 compatibility ──────────────────────────
+// Disable color management to preserve r128-era color appearance.
+// In r152+ ColorManagement is enabled by default which shifts how
+// hex colors are interpreted (sRGB → linear). Turning it off keeps
+// our palette, shaders, and light intensities identical to the
+// original r128 look without retuning every value.
+THREE.ColorManagement.enabled = false;
 // ════════════════════════════════════════════════════════
 //  COLOR PALETTES & FONT SYSTEM
 // ════════════════════════════════════════════════════════
@@ -509,14 +599,49 @@ const PALETTES = {
 };
 
 const FONT_SETS = {
-  default: { name: 'Playfair + Outfit', display: "'Playfair Display', Georgia, serif", body: "'Outfit', system-ui, sans-serif", mono: "'IBM Plex Mono', monospace" },
-  sora: { name: 'Cormorant + Sora', display: "'Cormorant Garamond', Georgia, serif", body: "'Sora', system-ui, sans-serif", mono: "'JetBrains Mono', monospace" },
-  crimson: { name: 'Crimson + DM Sans', display: "'Crimson Pro', Georgia, serif", body: "'DM Sans', system-ui, sans-serif", mono: "'Fira Code', monospace" },
-  grotesk: { name: 'Space Grotesk', display: "'Space Grotesk', system-ui, sans-serif", body: "'Space Grotesk', system-ui, sans-serif", mono: "'JetBrains Mono', monospace" },
+    grotesk: { name: 'Space Grotesk', display: "'Space Grotesk', system-ui, sans-serif", body: "'Space Grotesk', system-ui, sans-serif", mono: "'JetBrains Mono', monospace" },
+    default: { name: 'Playfair + Outfit', display: "'Playfair Display', Georgia, serif", body: "'Outfit', system-ui, sans-serif", mono: "'IBM Plex Mono', monospace" },
+    sora: { name: 'Cormorant + Sora', display: "'Cormorant Garamond', Georgia, serif", body: "'Sora', system-ui, sans-serif", mono: "'JetBrains Mono', monospace" },
+    crimson: { name: 'Crimson + DM Sans', display: "'Crimson Pro', Georgia, serif", body: "'DM Sans', system-ui, sans-serif", mono: "'Fira Code', monospace" },
 };
 
 let currentPalette = 'default';
-let currentFontSet = 'default';
+let currentFontSet = 'grotesk';
+let currentSpaceColor = '#06060b';
+let currentStarColor = 'warm';
+
+const SPACE_COLORS = [
+  { key: '#06060b', label: 'Void' },
+  { key: '#030318', label: 'Midnight' },
+  { key: '#020617', label: 'Deep Sea' },
+  { key: '#0c0604', label: 'Ember Dark' },
+  { key: '#060a06', label: 'Forest Night' },
+  { key: '#12001a', label: 'Nebula' },
+  { key: '#0a0a0a', label: 'Charcoal' },
+  { key: '#000814', label: 'Abyss' },
+];
+
+const spaceSwatchColors = {
+  '#06060b': '#1e1c2e',
+  '#030318': '#0d0d40',
+  '#020617': '#071840',
+  '#0c0604': '#2e150c',
+  '#060a06': '#111f11',
+  '#12001a': '#340050',
+  '#0a0a0a': '#282828',
+  '#000814': '#002060',
+};
+
+const STAR_COLORS = [
+  { key: 'warm',  label: 'Warm',  r: 1.03, g: 1.0, b: 0.97 },
+  { key: 'white', label: 'White', r: 1.0,  g: 1.0, b: 1.0  },
+  { key: 'blue',  label: 'Blue',  r: 0.80, g: 0.90, b: 1.0  },
+  { key: 'gold',  label: 'Gold',  r: 1.05, g: 0.95, b: 0.70 },
+  { key: 'pink',  label: 'Pink',  r: 1.05, g: 0.80, b: 0.90 },
+  { key: 'teal',  label: 'Teal',  r: 0.75, g: 1.0,  b: 0.95 },
+];
+
+const starLayers = [];
 
 function applyPalette(key) {
   currentPalette = key;
@@ -572,6 +697,105 @@ function applyFontSet(key) {
   });
 }
 
+function applySpaceColor(hex) {
+  currentSpaceColor = hex;
+  document.documentElement.style.setProperty('--void', hex);
+  const col = parseInt(hex.slice(1), 16);
+  if (scene) {
+    scene.background = new THREE.Color(col);
+    scene.fog = new THREE.FogExp2(col, globalFogDensity);
+  }
+  document.querySelectorAll('.color-chip[data-space]').forEach(c => {
+    c.classList.toggle('active', c.dataset.space === hex);
+  });
+  const inp = document.getElementById('space-hex-input');
+  if (inp) inp.value = hex;
+  const picker = document.getElementById('space-color-picker');
+  if (picker) picker.value = hex;
+}
+
+const starSwatchColors = { warm: '#fff8e7', white: '#ffffff', blue: '#cce4ff', gold: '#ffe4a0', pink: '#ffd6eb', teal: '#c0fff6' };
+
+function applyStarColor(key) {
+  currentStarColor = key;
+  const sc = STAR_COLORS.find(s => s.key === key);
+  if (!sc) return;
+  starLayers.forEach(({ points, baseColors, count }) => {
+    const colors = points.geometry.attributes.color.array;
+    for (let i = 0; i < count; i++) {
+      const b = baseColors[i * 3 + 1]; // green channel = base brightness
+      colors[i * 3]     = b * sc.r * globalStarIntensity;
+      colors[i * 3 + 1] = b * sc.g * globalStarIntensity;
+      colors[i * 3 + 2] = b * sc.b * globalStarIntensity;
+    }
+    points.geometry.attributes.color.needsUpdate = true;
+  });
+  document.querySelectorAll('.color-chip[data-star]').forEach(c => {
+    c.classList.toggle('active', c.dataset.star === key);
+  });
+  const brandColor = starSwatchColors[key] || '#f0eeeb';
+  const prefix = document.getElementById('brand-prefix');
+  const suffix = document.getElementById('brand-suffix');
+  if (prefix) prefix.style.color = brandColor;
+  if (suffix) suffix.style.color = brandColor;
+  const sinp = document.getElementById('star-hex-input');
+  if (sinp) sinp.value = starSwatchColors[key] || '';
+  const spicker = document.getElementById('star-color-picker');
+  if (spicker && starSwatchColors[key]) spicker.value = starSwatchColors[key];
+}
+
+function applyStarHex(hex) {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  const rr = parseInt(hex.slice(1,3),16)/255;
+  const gg = parseInt(hex.slice(3,5),16)/255;
+  const bb = parseInt(hex.slice(5,7),16)/255;
+  const mx = Math.max(rr,gg,bb) || 1;
+  const sc = { r: rr/mx, g: gg/mx, b: bb/mx };
+  currentStarColor = 'custom';
+  starLayers.forEach(({ points, baseColors, count }) => {
+    const colors = points.geometry.attributes.color.array;
+    for (let i = 0; i < count; i++) {
+      const b = baseColors[i*3+1];
+      colors[i*3]   = b * sc.r * globalStarIntensity;
+      colors[i*3+1] = b * sc.g * globalStarIntensity;
+      colors[i*3+2] = b * sc.b * globalStarIntensity;
+    }
+    points.geometry.attributes.color.needsUpdate = true;
+  });
+  document.querySelectorAll('.color-chip[data-star]').forEach(c => c.classList.remove('active'));
+  const prefix = document.getElementById('brand-prefix');
+  const suffix = document.getElementById('brand-suffix');
+  if (prefix) prefix.style.color = hex;
+  if (suffix) suffix.style.color = hex;
+}
+
+function applyGlobalBrightness(v) {
+  globalBrightness = v;
+  refreshVisibility();
+}
+
+function applyGlobalFog(v) {
+  globalFogDensity = v;
+  if (scene && scene.fog) scene.fog.density = v;
+}
+
+function applyStarIntensity(v) {
+  globalStarIntensity = v;
+  if (currentStarColor !== 'custom') applyStarColor(currentStarColor);
+}
+
+function applyOrbVibrancy(v) {
+  globalOrbVibrancy = v;
+  glows.forEach(s => {
+    s.userData.baseOp = s.userData.rawBaseOp * v;
+    s.material.opacity = s.userData.baseOp;
+  });
+  hazes.forEach(h => {
+    h.userData.baseOp = h.userData.rawBaseOp * v;
+    h.material.opacity = h.userData.baseOp;
+  });
+}
+
 function buildSettingsUI() {
   // Palettes
   const grid = document.getElementById('palette-grid');
@@ -602,6 +826,144 @@ function buildSettingsUI() {
     fontList.appendChild(opt);
   });
 
+  // Space color chips
+  const spaceList = document.getElementById('space-color-list');
+  SPACE_COLORS.forEach(sc => {
+    const chip = document.createElement('div');
+    chip.className = 'color-chip' + (sc.key === currentSpaceColor ? ' active' : '');
+    chip.dataset.space = sc.key;
+    chip.title = sc.label;
+    chip.style.background = spaceSwatchColors[sc.key] || sc.key;
+    chip.style.border = '1px solid rgba(255,255,255,0.15)';
+    chip.addEventListener('click', () => {
+      applySpaceColor(sc.key);
+      const inp = document.getElementById('space-hex-input');
+      if (inp) inp.value = sc.key;
+    });
+    spaceList.appendChild(chip);
+  });
+
+  // Space hex input + native color picker
+  const spaceHexInput = document.getElementById('space-hex-input');
+  const spacePicker   = document.getElementById('space-color-picker');
+  if (spaceHexInput) {
+    spaceHexInput.value = currentSpaceColor;
+    spaceHexInput.addEventListener('click', () => { if (spacePicker) spacePicker.click(); });
+    spaceHexInput.addEventListener('input', () => {
+      const val = spaceHexInput.value.trim();
+      if (/^#[0-9a-fA-F]{6}$/.test(val)) applySpaceColor(val);
+    });
+    spaceHexInput.addEventListener('keydown', e => { if (e.key === 'Enter') spaceHexInput.blur(); });
+  }
+  if (spacePicker) {
+    spacePicker.addEventListener('input', () => {
+      if (spaceHexInput) spaceHexInput.value = spacePicker.value;
+      applySpaceColor(spacePicker.value);
+    });
+  }
+
+  // Star color chips
+  const starList = document.getElementById('star-color-list');
+  STAR_COLORS.forEach(sc => {
+    const chip = document.createElement('div');
+    chip.className = 'color-chip' + (sc.key === currentStarColor ? ' active' : '');
+    chip.dataset.star = sc.key;
+    chip.title = sc.label;
+    chip.style.background = starSwatchColors[sc.key];
+    chip.addEventListener('click', () => applyStarColor(sc.key));
+    starList.appendChild(chip);
+  });
+
+  // Star custom hex input + native color picker
+  const starHexInput = document.getElementById('star-hex-input');
+  const starPicker   = document.getElementById('star-color-picker');
+  if (starHexInput) {
+    starHexInput.addEventListener('click', () => { if (starPicker) starPicker.click(); });
+    starHexInput.addEventListener('input', () => {
+      const val = starHexInput.value.trim();
+      if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+        if (starPicker) starPicker.value = val;
+        applyStarHex(val);
+      }
+    });
+    starHexInput.addEventListener('keydown', e => { if (e.key === 'Enter') starHexInput.blur(); });
+  }
+  if (starPicker) {
+    starPicker.addEventListener('input', () => {
+      if (starHexInput) starHexInput.value = starPicker.value;
+      applyStarHex(starPicker.value);
+    });
+  }
+
+  // Drift speed
+  const driftRow = document.getElementById('drift-speed-row');
+  const driftSpeeds = [
+    { label: 'Off',    speed: 0,      enabled: false },
+    { label: 'Slow',   speed: 0.0001, enabled: true  },
+    { label: 'Normal', speed: 0.0003, enabled: true  },
+    { label: 'Fast',   speed: 0.0008, enabled: true  },
+  ];
+  function updateDriftBtns() {
+    driftRow.querySelectorAll('.drift-speed-btn').forEach((btn, i) => {
+      const d = driftSpeeds[i];
+      const isActive = !d.enabled ? !driftEnabled
+        : driftEnabled && Math.abs(driftSpeed - d.speed) < 0.00001;
+      btn.classList.toggle('active', isActive);
+    });
+  }
+  driftSpeeds.forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = 'drift-speed-btn';
+    btn.textContent = d.label;
+    btn.addEventListener('click', () => {
+      if (!d.enabled) {
+        driftEnabled = false;
+        autoDrift = false;
+      } else {
+        driftEnabled = true;
+        autoDrift = true;
+        driftSpeed = d.speed;
+      }
+      updateDriftBtns();
+    });
+    driftRow.appendChild(btn);
+  });
+  updateDriftBtns();
+
+  // Advanced settings section
+  const advToggle  = document.getElementById('adv-toggle');
+  const advSection = document.getElementById('adv-section');
+  if (advToggle && advSection) {
+    advToggle.addEventListener('click', () => {
+      advToggle.classList.toggle('open');
+      advSection.classList.toggle('open');
+    });
+  }
+  const advSliders = document.getElementById('adv-sliders');
+  if (advSliders) {
+    const advDefs = [
+      { id: 'adv-brightness', label: 'Scene Brightness', min: 0.2,   max: 2.0,   step: 0.05,   def: 1.0,   fmt: v => v.toFixed(2), fn: applyGlobalBrightness },
+      { id: 'adv-fog',        label: 'Fog Density',      min: 0,     max: 0.012, step: 0.0005, def: 0.003, fmt: v => v.toFixed(4), fn: applyGlobalFog },
+      { id: 'adv-stars',      label: 'Star Intensity',   min: 0.1,   max: 3.0,   step: 0.05,   def: 1.0,   fmt: v => v.toFixed(2), fn: applyStarIntensity },
+      { id: 'adv-vibrancy',   label: 'Orb Vibrancy',     min: 0.1,   max: 3.0,   step: 0.05,   def: 1.0,   fmt: v => v.toFixed(2), fn: applyOrbVibrancy },
+    ];
+    advDefs.forEach(({ id, label, min, max, step, def, fmt, fn }) => {
+      const row = document.createElement('div');
+      row.className = 'slider-row';
+      const valId = id + '-val';
+      row.innerHTML = '<div class="slider-label-row"><span>' + label + '</span>' +
+        '<span class="slider-val" id="' + valId + '">' + fmt(def) + '</span></div>' +
+        '<input type="range" class="adv-slider" id="' + id + '" min="' + min +
+        '" max="' + max + '" step="' + step + '" value="' + def + '">';
+      advSliders.appendChild(row);
+      row.querySelector('input').addEventListener('input', function() {
+        const v = parseFloat(this.value);
+        document.getElementById(valId).textContent = fmt(v);
+        fn(v);
+      });
+    });
+  }
+
   // Toggle
   const toggle = document.getElementById('settings-toggle');
   const panel = document.getElementById('settings-panel');
@@ -612,17 +974,18 @@ function buildSettingsUI() {
 }
 
 // ════════════════════════════════════════════════════════
-//  ENHANCED BUBBLE SHADER (unselected orbs — more definition)
+//  NEBULA SHADER (unselected orbs — planetary nebula look)
 // ════════════════════════════════════════════════════════
 const BUBBLE_VERT = `
   uniform float uTime;
   uniform float uDisplaceAmp;
   uniform float uDisplaceSpeed;
   uniform float uSelected;
-  varying vec3 vNormal;
-  varying vec3 vViewDir;
-  varying vec3 vPosition;
-  varying vec3 vWorldPos;
+  varying vec3  vNormal;
+  varying vec3  vViewDir;
+  varying vec3  vPosition;
+  varying vec3  vWorldPos;
+  varying float vRadial;
 
   void main() {
     vNormal   = normalize(normalMatrix * normal);
@@ -630,15 +993,19 @@ const BUBBLE_VERT = `
     vViewDir  = normalize(-worldPos.xyz);
     vPosition = position;
     vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+    vRadial   = length(position);
 
     float d = 0.0;
-    d += sin(position.x * 2.0  + uTime * uDisplaceSpeed * 1.2) * 0.35;
-    d += sin(position.y * 3.0  + uTime * uDisplaceSpeed * 0.8) * 0.25;
-    d += sin(position.z * 2.5  + uTime * uDisplaceSpeed * 1.0) * 0.20;
-    d += sin((position.x + position.y) * 4.0 + uTime * uDisplaceSpeed * 1.5) * 0.20;
-    // Higher frequency detail ripples
-    d += sin(position.x * 6.0 + position.z * 4.0 + uTime * uDisplaceSpeed * 2.0) * 0.08;
-    d += sin(position.y * 5.0 + position.x * 3.0 + uTime * uDisplaceSpeed * 0.6) * 0.06;
+    // Large-scale breathing — slow asymmetric deformation like expanding gas shells
+    d += sin(position.x * 1.5  + uTime * uDisplaceSpeed * 0.30) * 0.40;
+    d += sin(position.y * 2.0  + uTime * uDisplaceSpeed * 0.22) * 0.35;
+    d += sin(position.z * 1.8  + uTime * uDisplaceSpeed * 0.28) * 0.30;
+    d += sin((position.x + position.y) * 2.5 + uTime * uDisplaceSpeed * 0.18) * 0.25;
+    // Very slow tidal bulge — makes the sphere feel like a gas cloud, not a ball
+    d += sin(position.x * 0.8 + position.z * 0.6 + uTime * uDisplaceSpeed * 0.08) * 0.35;
+    // Mid-frequency detail ripples
+    d += sin(position.x * 4.0 + position.z * 3.0 + uTime * uDisplaceSpeed * 0.45) * 0.10;
+    d += sin(position.y * 3.5 + position.x * 2.5 + uTime * uDisplaceSpeed * 0.32) * 0.08;
 
     float amp = uDisplaceAmp * mix(1.0, 3.0, uSelected);
     vec3 displaced = position + normal * d * amp;
@@ -658,102 +1025,118 @@ const BUBBLE_FRAG = `
   uniform float uBrightness;
   uniform float uSelected;
 
-  varying vec3 vNormal;
-  varying vec3 vViewDir;
-  varying vec3 vPosition;
-  varying vec3 vWorldPos;
+  varying vec3  vNormal;
+  varying vec3  vViewDir;
+  varying vec3  vPosition;
+  varying vec3  vWorldPos;
+  varying float vRadial;
 
-  // Procedural noise for internal detail
   float hash(vec3 p) {
     p = fract(p * 0.3183099 + 0.1);
     p *= 17.0;
     return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
   }
+
   float noise3d(vec3 p) {
     vec3 i = floor(p);
     vec3 f = fract(p);
     f = f * f * (3.0 - 2.0 * f);
-    return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
-                   mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-               mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
-                   mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+    return mix(
+      mix(mix(hash(i), hash(i+vec3(1,0,0)), f.x),
+          mix(hash(i+vec3(0,1,0)), hash(i+vec3(1,1,0)), f.x), f.y),
+      mix(mix(hash(i+vec3(0,0,1)), hash(i+vec3(1,0,1)), f.x),
+          mix(hash(i+vec3(0,1,1)), hash(i+vec3(1,1,1)), f.x), f.y), f.z);
+  }
+
+  float fbm(vec3 p) {
+    float v = 0.0, a = 0.5;
+    vec3 shift = vec3(100.0);
+    for (int i = 0; i < 5; i++) {
+      v += a * noise3d(p);
+      p = p * 2.0 + shift;
+      a *= 0.5;
+    }
+    return v;
+  }
+
+  float warpedFbm(vec3 p, float t) {
+    vec3 q = vec3(
+      fbm(p + vec3(0.0, 0.0, 0.0) + t * 0.04),
+      fbm(p + vec3(5.2, 1.3, 2.8) - t * 0.03),
+      fbm(p + vec3(1.7, 9.2, 4.1) + t * 0.02)
+    );
+    return fbm(p + 3.0 * q);
   }
 
   void main() {
     vec3  N = normalize(vNormal);
     vec3  V = normalize(vViewDir);
-
-    // --- Fresnel ---
     float NdotV  = max(dot(N, V), 0.0);
     float fresnel = pow(1.0 - NdotV, uFresnelPower);
 
-    // --- Internal structure noise (adds detail to unselected orbs) ---
-    float internalNoise = noise3d(vPosition * 3.0 + uTime * 0.15) * 0.5
-                        + noise3d(vPosition * 6.0 - uTime * 0.08) * 0.25
-                        + noise3d(vPosition * 12.0 + uTime * 0.22) * 0.12;
-    // Caustic-like internal light pattern
-    float caustic = pow(abs(sin(vPosition.x * 4.0 + vPosition.y * 3.0 + uTime * 0.3)
-                       * sin(vPosition.y * 5.0 + vPosition.z * 2.0 - uTime * 0.2)), 3.0) * 0.5;
+    // Object-space radial distance, normalized. This is STABLE as you orbit —
+    // the shell structure is baked to the geometry, not the view angle.
+    float r = clamp(vRadial / 1.6, 0.0, 1.0);
 
-    // --- Thin-film iridescence ---
-    float f = fresnel * uIridesFreq;
-    vec3 irides;
-    irides.r = sin(f * 6.2832 + 0.0)    * 0.5 + 0.5;
-    irides.g = sin(f * 6.2832 + 2.0944) * 0.5 + 0.5;
-    irides.b = sin(f * 6.2832 + 4.1888) * 0.5 + 0.5;
+    // Gas turbulence
+    vec3 noiseCoord = vPosition * 2.5;
+    float turb    = warpedFbm(noiseCoord, uTime);
+    float turb2   = fbm(noiseCoord * 1.8 + uTime * 0.06);
+    float filament = pow(turb, 1.5);
+    float wisps    = pow(turb2, 2.0);
 
-    vec3 cooledIrides  = mix(irides, vec3(0.62, 0.88, 1.0), uSelected * 0.60);
-    float iridesBlend  = mix(0.45, 1.0, uSelected);
-    float colorMix     = mix(uIridesIntensity, 1.0, uSelected);
-    vec3 tintedIrides  = mix(uColor, cooledIrides, iridesBlend);
-    vec3 iridesColor   = mix(uColor, tintedIrides, colorMix);
+    // THREE distinct radial zones with WIDE transitions
+    float innerMask = 1.0 - smoothstep(0.0, 0.5, r);
+    float midMask   = smoothstep(0.2, 0.5, r) * (1.0 - smoothstep(0.5, 0.8, r));
+    float outerMask = smoothstep(0.5, 0.85, r);
 
-    // --- Multi-light specular ---
+    // Inner: blue-violet ionized gas
+    vec3 innerCol = mix(vec3(0.25, 0.30, 0.70), vec3(0.55, 0.45, 0.80), turb);
+    innerCol += vec3(0.10, 0.18, 0.05) * wisps * 0.6;
+
+    // Outer: warm category-colored rim (NOT blown out — note the restrained multipliers)
+    vec3 warmRim = uColor * (0.8 + filament * 0.6);
+    warmRim += vec3(0.25, 0.15, 0.02) * outerMask * (0.5 + turb * 0.5);
+
+    vec3 gasColor = innerCol * innerMask
+                  + mix(innerCol, warmRim, 0.5) * midMask
+                  + warmRim * outerMask;
+
+    // Central star — object-space, view-independent
+    float coreDist = length(vPosition) / 1.6;
+    float coreGlow = exp(-coreDist * coreDist * 18.0);
+    float coreStar = exp(-coreDist * coreDist * 80.0);
+    vec3 coreColor = vec3(1.0, 0.98, 0.92) * coreStar * 3.0
+                   + vec3(0.70, 0.80, 1.0) * coreGlow * 1.2;
+
+    // Volumetric alpha
+    float shellDensity = smoothstep(0.0, 0.3, r) * (1.0 - smoothstep(0.85, 1.0, r));
+    float gasAlpha = shellDensity * (0.5 + filament * 0.4)
+                   + innerMask * (0.15 + turb * 0.15)
+                   + outerMask * (0.6 + turb * 0.3);
+    gasAlpha += fresnel * 0.25;
+    gasAlpha = max(gasAlpha, coreGlow * 0.9 + coreStar);
+
+    // Rim emission — gentler than before
+    float rimEmission = pow(fresnel, 2.5) * 0.6;
+    vec3 rimColor = uColor * rimEmission;
+
+    // Soft specular
     vec3  L1 = normalize(vec3(40.0, 60.0, 30.0));
     vec3  H1 = normalize(L1 + V);
-    float spec1 = pow(max(dot(N, H1), 0.0), uSpecPower);
-    // Secondary light for more definition
-    vec3  L2 = normalize(vec3(-30.0, 20.0, -40.0));
-    vec3  H2 = normalize(L2 + V);
-    float spec2 = pow(max(dot(N, H2), 0.0), uSpecPower * 0.5) * 0.3;
-    // Rim highlight from behind
-    vec3  L3 = normalize(vec3(0.0, -20.0, -50.0));
-    float rimSpec = pow(max(dot(N, normalize(L3 + V)), 0.0), 24.0) * 0.2;
+    float spec = pow(max(dot(N, H1), 0.0), 32.0) * 0.15;
 
-    float spec = spec1 + spec2;
-    float specBroad = pow(max(dot(N, H1), 0.0), 10.0);
+    vec3 col = gasColor * (0.6 + filament * 0.4)
+             + coreColor
+             + rimColor
+             + vec3(1.0) * spec;
 
-    // --- Interior glow with noise detail ---
-    float glowCatMix = mix(0.72, 0.0, uSelected);
-    vec3 glowColor   = mix(vec3(0.85, 0.92, 1.0), uColor, glowCatMix);
-    // Internal noise adds visible structure to the core
-    float noiseDetail = mix(internalNoise * 0.4 + caustic * 0.3, 0.0, uSelected);
-    vec3 glow = glowColor * ((1.0 - NdotV) * uGlowIntensity + noiseDetail);
+    float alpha = clamp(gasAlpha, 0.0, 1.0);
 
-    // --- Composite ---
-    float baseTint    = 0.18 * (1.0 - uSelected);
-    float iridMult    = mix(fresnel, mix(0.38, 1.4, fresnel), uSelected);
-    float specMult    = mix(1.0,  3.2, uSelected);
-    float sheenMult   = mix(0.0,  2.8, uSelected);
-    float alphaLow    = mix(0.12, 0.32, uSelected);
-    float alphaHigh   = mix(0.92, 0.96, uSelected);
-    float specAlpha   = mix(0.35, 0.40, uSelected);
-
-    vec3  col  = iridesColor * iridMult
-               + uColor      * baseTint
-               + vec3(1.0)              * spec      * specMult
-               + vec3(0.93, 0.97, 1.0) * specBroad * sheenMult
-               + vec3(0.7, 0.85, 1.0)  * rimSpec
-               + glow;
-    float alpha = mix(alphaLow, alphaHigh, fresnel) + spec * specAlpha;
-
-    // Add internal structure to alpha for unselected
-    alpha += noiseDetail * 0.15 * (1.0 - uSelected);
-
-    // Selected: soap film rim
+    // Selected fallback
     vec3  soapRim = vec3(0.82, 0.95, 1.0) * 1.35;
     float rimMask = uSelected * pow(fresnel, 1.8);
-    col   = mix(col,   soapRim,      rimMask * 0.95);
+    col   = mix(col, soapRim, rimMask * 0.95);
     alpha = mix(alpha, alpha * 0.38, rimMask);
 
     gl_FragColor = vec4(col * uBrightness, clamp(alpha, 0.0, 1.0));
@@ -883,7 +1266,7 @@ const RESUME = {
   about: [
     { title: "Hello, I'm Phil!", subtitle: "Creative Product Leader & Force Multiplied Software Developer", 
     desc: "I love to build great teams and craft cool things. \n\nI've worked at the intersection of Finance and Technology for close to a decade now, where I have:\n\n- Supported and shipped software reaching millions of users\n- Directed AI initiatives supporting 11k+ enterprise employees\n- Planned & facilitated workshops with executive leaders\n- Built / automated / managed many reports & workflows \n- Designed / Built enterprise & personal software solutions\n- Trained others on emerging technologies, Scrum/Agile, & more \n- Developed knowledge bases, user guides, & training materials\n- Managed / mentored junior PO's, analysts, & developers\n- Interviewed users, crafted roadmaps, & gathered requirements\n- Led product launches and software deployments\n- Implemented tools for analytics, digitial adoption, & more\n- Advised small businesses, non-profits, & individuals of all paths\n- Consulted institutional clients, large corporations, & hedge funds\n- Assisted organizations of scale and teams as small as (1)\n\nWhen I'm not hanging with stakeholders, designing solutions, or developing software, you may find me:\n\n- Volunteering\n- Spending time with my family, friends, and animals \n- Spending time in nature \n- Making music, playing drums\n- Skiing in the winter \n- Golfing in the other seasons \n- Investing in real estate\n- Trading stocks, currencies, cards, and more\n- Exploring new places and learning new things \n- Building and managing:\n  -- An economically sustainable farm \n   -- A nonprofit that will benefit my community \n  -- Businesses that support a passion or purpose\n\nLets build something great together.", 
-    tags: ["Product Management","Artificial Intelligence","Agentic AI","Blockchain & Digital Assets","SQL","Product Analytics","Financial Modeling","Scrum / Agile", "Real Estate","Farm Management","Percussion","Frontend","Mentoring"], links: [{ label:"GitHub (Coming Soon)", url:"#" },{ label:"LinkedIn", url:"https://www.linkedin.com/in/philrich11/" },{ label:"Email", url:"mailto:philrich.wav@icloud.com" }] }
+    tags: ["Product Management","Artificial Intelligence","Agentic AI","3D Animation","VR/AR/XR","Blockchain & Digital Assets","SQL","Product Analytics","Financial Modeling","Scrum / Agile", "Real Estate","Farm Management","Percussion","Frontend","Mentoring"], links: [{ label:"GitHub (Coming Soon)", url:"#" },{ label:"LinkedIn", url:"https://www.linkedin.com/in/philrich11/" },{ label:"Email", url:"mailto:philrich.wav@icloud.com" }] }
     ],
 
     education: [
@@ -892,8 +1275,11 @@ const RESUME = {
     { title: "B.S.B.A. Supply Chain Management", subtitle: "Appalachian State University", desc: "Coursework includes but not limited to:\n-POM4564: Total Quality Management \n-SCM3720: Strategic Procurment and Global Sourcing\n-SCM3690: Global Supply Chain & Logistics\n-SCM3670: Six Sigma & Quality Management\n-SCM3660: Supply Chain Management\n-SCM3650: Production & Operations Management\n-MGT4750: Strategic Management\n-MGT3630: Organizational Behavior\n-MGT3620: Human Resource Management\n-MKT3260: Managing Distribution Channels\n-MKT3050: Principles of Marketing\n-STT2810: Introduction to Statistics\n-CIS2050: Information Technology in the Organization\n\n (Previously) Active member of Appalachian Supply Chain Club, APICS, and CSCMP.", 
     tags: ["Management Information Systems","Computer Information Systems","Distribution Channels","Lean","Six Sigma","Marketing","Operations Management"], meta: { Year:"2012 - 2017", Awards:"BSG: Business Strategy Game Industry Leader and Team MVP" } ,links: [{label:"Curriculum", url:"https://bulletin.appstate.edu/preview_program.php?catoid=1&poid=276&returnto=44"}]},
     { title: "Certified Scrum Master (CSM)", subtitle: "Professional Certification", desc: "Experienced in aligning cross-functional teams around shared goals to deliver high-impact solutions. Primarily focused on creating adaptive, high-performing teams that thrive in fast-paced environments, combined with strategic planning and hands-on facilitation to deliver quality products on time and within scope.", tags: ["Servant Leadership","Sprint Planning", "Daily Stand-ups","Retrospectives", "Backlog Grooming", "Impediment Removal", "Velocity Tracking", "Capacity Planning", "Conflict Resolution", "Stakeholder Management","Change Management", "Cross-Functional Team Leadership","Burn-down Charts","Velocity Tracking", "Scrum Ceremonies"],
-    meta: { Year:"2022-2024"}, links: [{ label: "Certified Badge", url: "https://bcert.me/seycffidc" },{ label: "What is this?", url: "https://www.scrumalliance.org/get-certified/scrum-master-track/certified-scrummaster" }
-    ]}
+    meta: { Year:"2022-2024"}, links: [{ label: "Certification", url: "https://bcert.me/seycffidc" },{ label: "What is this?", url: "https://www.scrumalliance.org/get-certified/scrum-master-track/certified-scrummaster" }
+    ]},
+    // { title: "Post University Eductation: Self Study", subtitle: "Continued Educational Paths", desc: "I am a lifelong learner with a growth mindset, meaning I believe that intelligence and abilities can be developed through effort, learning, and persistence as I am naturally curious and have a love for learning.", tags: ["Servant Leadership","Sprint Planning", "Daily Stand-ups","Retrospectives", "Backlog Grooming", "Impediment Removal", "Velocity Tracking", "Capacity Planning", "Conflict Resolution", "Stakeholder Management","Change Management", "Cross-Functional Team Leadership","Burn-down Charts","Velocity Tracking", "Scrum Ceremonies"],
+    // meta: { links: [{ label: "Certification:", url: "" },{ label: "What is this?", url: "" },{ label: "Certification:", url: "" },{ label: "What is this?", url: "" }
+    // ]}
 ],
 experience: [
 {
@@ -1015,6 +1401,44 @@ title: "AI Consultant: Digital Product Owner / GenAI Delivery Manager",
 ],
    
 skills: [
+
+// { title: "Fullstack Development", subtitle: "Product Focused Developer", desc: "Hands-on builder with working experience across frontend, backend, APIs, databases, and deployment workflows. Use code to prototype product ideas quickly, collaborate more effectively with engineers, and validate concepts through lightweight working experiences rather than static documentation alone.", tags: ["Frontend","Backend","Python","SQL","C","PHP","APIs","PostgreSQL","Web Hosting","MySpace"], links: [{label:"Completed: The Complete Web Developer Bootcamp",url:"https://www.udemy.com/certificate/UC-4a0a783b-e697-4276-9f8c-590b0ab90855/"}] },
+// { title: "Frontend Development", subtitle: "Developing faster than ever. Core Dev Focus", desc: "Deep expertise in modern frontend frameworks and tooling. Focus on performance, accessibility, and delightful user experiences with smooth animations.", tags: ["React","TypeScript","Next.js","Vue","Tailwind CSS","Three.js","GSAP","Framer Motion"] },
+// { title: "Product Adoption & Analytics", subtitle: "Pendo Admin", desc: "Will update later. See experience section for more info.", tags: ["Pendo","User Behavior","A/B Testing","User Guides","User Retention", "Stickiness","Product Metrics"], links: [{label: "Pendo Admin", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url"}, {label:"Pendo Essentials for Web", url: "https://www.credly.com/badges/0f7c8eec-0e7d-4f23-82f7-8a4d362eda2b/public_url"}] },
+// { title: "Product Management", subtitle: "Current Professional Focus", desc: "Have a passion for building software that users love and need. I love working with development teams and am always curious about how things are built, and how we can improve them.", tags: ["Agile","Scrum","Kanban","Cross-functional Collaboration","Requirement Gathering","Prototyping","Product Roadmaps","Portfolio Management","Product Backlog", "Stakeholder Management"], links: {label:"Certification: AI for Product Management", url:"https://www.credly.com/badges/7c66f10a-8f2e-48a1-b1da-0d3d972b6929/public_url"} },
+// { title: "Winter Sports", subtitle: "Passion & Hobby", desc: "I have always loved the snow, but I fell in love with skiing in 2014 while in college at App State. I was fortunate enough to learn both informally from a 12 year old ski wizard, and formally through an intermediate ski class for a credit in physical education.", tags: ["Pizza","French Fry","Armada Skis","Twin Tips","when_Japan?"] },
+// { title: "Golf", subtitle: "Passion & Hobby", desc: "Being a lifelong athelete in adulthood, I am glad I started playing Golf in 2022. I truly enjoy the excuse to get outside with people I care about and enjoy nature. I push myself to play at least once a week when possible, if not more. Working on some golf ideas...", tags: ["Lefty","Handicap = 17.8"] },
+// { title: "Music Production & Audio Engineering", subtitle: "Passion & Hobby", desc: "Born into the world of radio and DJing, I have the following experience: \n-20+ years: Drums & Percussion\n-6+ years: Music Production\n-2+ years: Casual DJ", links: [{label:"Book Me",url:"https://philrich.live"}], tags: ["Drums","Music Production","Music Lessons","DJ your wedding","Cats love it"] },
+// { title: "Natural Farming", subtitle: "Passion & Hobby", desc: "I've been gardening since 2020, and I started a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants(1250 starter plants in 2024), will grow upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.", tags: ["Soil & Plant Biology","Chemistry","JADAM","Korean Natural Farming (KNF)","Organic Inputs","HOT Peppers"], links: [{label: "Website Under Construction", url: "https://www.bluerocknurseries.com/"}, {label:"Instagram", url: "https://www.instagram.com/bluerocknurseries/"}] },
+{ title: "Data Analytics", subtitle: "Product-focused Business and Data Analyst", desc: "Blend analytical rigor with product thinking to turn data into decisions. Experience working with Regulatory and adhoc reporting, Excel, SQL, Python, Tableau, business intelligence, and data modeling to support business decisions and product strategy, operational visibility, experimentation, and stakeholder communication.", tags: ["SQL","Python","Business Intelligence","Reporting","Excel","Data Modeling","Data Engineering","Data pipelines"], links: [{label: "The Complete SQL Bootcamp 2022: Go from Zero to Hero", url: "https://www.udemy.com/certificate/UC-dff15609-d389-4656-8228-c6a1d0104135/"}, {label:"Python for Finance: Investment Fundamentals & Data Analytics(In Progress)", url: "https://www.udemy.com/course/python-for-finance-investment-fundamentals-data-analytics/"}] },
+{ title: "Design & UX", subtitle: "User-Centered Design", desc: "Design and prototype thoughtful user experiences, creating seamless UX across product, interaction, and interface layers. Strong interest in translating complex ideas into intuitive and engaging user journeys, including VR, 3D, and spatial design." },
+{ title: "Frontend Engineering & Product Prototyping",
+  subtitle: "Interactive 3D / Fullstack Builder",
+  desc: "Build modern, consumer-facing digital experiences with a strong emphasis on frontend interaction, usability, motion, and rapid product prototyping. Particularly focused on technically rich experiences at the intersection of AI, 3D, spatial computing, and immersive web interfaces, with hands-on capability across modern frontend frameworks as well as the APIs, backend logic, and data flows needed to support end-to-end product development. Use code as a practical tool to explore new concepts, validate workflows, and collaborate effectively with engineering teams in early-stage, experimentation-heavy environments.",
+  tags: [
+    "React",
+    "TypeScript",
+    "Next.js",
+    "JavaScript",
+    "Three.js",
+    "WebXR",
+    "Tailwind CSS",
+    "GSAP",
+    "Framer Motion",
+    "APIs",
+    "Python",
+    "SQL",
+    "PostgreSQL",
+    "Backend Logic",
+    "Interactive Prototyping",
+    "Spatial UX"
+  ],
+  links: [
+    { label: "In Progress: Learn 3D Animation - The Ultimate Blender A-Z Guide", url: "https://www.udemy.com/course/blendercourse/" },
+    { label: "Completed: Learn to create WebXR, VR and AR, experiences using Three.JS", url: "https://www.udemy.com/certificate/UC-0f1fc2db-2760-41cd-a308-cf8b64d2e8b3/" },
+    { label: "Completed: The Complete Web Developer Bootcamp", url: "link_here" }
+  ]
+},
 {
     title: "3D / Spatial Computing",
     subtitle: "Emerging Specialization",
@@ -1025,16 +1449,35 @@ skills: [
       { label: "In Progress: Blender Course", url: "https://www.udemy.com/course/blendercourse" }
     ]
   },
-{ title: "Data Analytics", subtitle: "Former Data Analyst", desc: "Will update later. See experience section for more info.", tags: ["SQL","Python","Business Intelligence","Reporting","Excel","Data Modeling","Data Engineering","Data pipelines"], links: [{label: "The Complete SQL Bootcamp 2022: Go from Zero to Hero", url: "https://www.udemy.com/certificate/UC-dff15609-d389-4656-8228-c6a1d0104135/"}, {label:"Python for Finance: Investment Fundamentals & Data Analytics(In Progress)", url: "https://www.udemy.com/course/python-for-finance-investment-fundamentals-data-analytics/"}] },
-{ title: "Design & UX", subtitle: "Cross-Discipline", desc: "Design and engineer professional, clean, and/or cool experiences — strong skills in UI/UX, prototyping, design systems, and user research.", tags: ["Miro","Figma","Design Systems","Prototyping","Wireframing","User Research","Accessibility","Motion Design"] },
-{ title: "Fullstack Development", subtitle: "Learning, Learning, Learning", desc: "I've been messing around with software since I was a kid. I am constantly trying to keep up with the trends, and am thankful for AI coding tools.", tags: ["Frontend","Backend","Python","SQL","C","PHP","APIs","PostgreSQL","Web Hosting","MySpace"], links: [{label:"Completed: The Complete Web Developer Bootcamp",url:"https://www.udemy.com/certificate/UC-4a0a783b-e697-4276-9f8c-590b0ab90855/"}] },
-{ title: "Frontend Development", subtitle: "Developing faster than ever. Core Dev Focus", desc: "Deep expertise in modern frontend frameworks and tooling. Focus on performance, accessibility, and delightful user experiences with smooth animations.", tags: ["React","TypeScript","Next.js","Vue","Tailwind CSS","Three.js","GSAP","Framer Motion"] },
-{ title: "Product Adoption & Analytics", subtitle: "Pendo Admin", desc: "Will update later. See experience section for more info.", tags: ["Pendo","User Behavior","A/B Testing","User Guides","User Retention", "Stickiness","Product Metrics"], links: [{label: "Pendo Admin", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url"}, {label:"Pendo Essentials for Web", url: "https://www.credly.com/badges/0f7c8eec-0e7d-4f23-82f7-8a4d362eda2b/public_url"}] },
-{ title: "Product Management", subtitle: "Current Professional Focus", desc: "Have a passion for building software that users love and need. I love working with development teams and am always curious about how things are built, and how we can improve them.", tags: ["Agile","Scrum","Kanban","Cross-functional Collaboration","Requirement Gathering","Prototyping","Product Roadmaps","Portfolio Management","Product Backlog", "Stakeholder Management"], links: {label:"Certification: AI for Product Management", url:"https://www.credly.com/badges/7c66f10a-8f2e-48a1-b1da-0d3d972b6929/public_url"} },
-{ title: "Winter Sports", subtitle: "Passion & Hobby", desc: "I have always loved the snow, but I fell in love with skiing in 2014 while in college at App State. I was fortunate enough to learn both informally from a 12 year old ski wizard, and formally through an intermediate ski class for a credit in physical education.", tags: ["Pizza","French Fry","Armada Skis","Twin Tips","when_Japan?"] },
-{ title: "Golf", subtitle: "Passion & Hobby", desc: "Being a lifelong athelete in adulthood, I am glad I started playing Golf in 2022. I truly enjoy the excuse to get outside with people I care about and enjoy nature. I push myself to play at least once a week when possible, if not more. Working on some golf ideas...", tags: ["Lefty","Handicap = 17.8"] },
-{ title: "Music Production & Audio Engineering", subtitle: "Passion & Hobby", desc: "Born into the world of radio and DJing, I have the following experience: \n-20+ years: Drums & Percussion\n-6+ years: Music Production\n-2+ years: Casual DJ", links: [{label:"Book Me",url:"https://philrich.live"}], tags: ["Drums","Music Production","Music Lessons","DJ your wedding","Cats love it"] },
-{ title: "Natural Farming", subtitle: "Passion & Hobby", desc: "I've been gardening since 2020, and I started a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants(1250 starter plants in 2024), will grow upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.", tags: ["Soil & Plant Biology","Chemistry","JADAM","Korean Natural Farming (KNF)","Organic Inputs","HOT Peppers"], links: [{label: "Website Under Construction", url: "https://www.bluerocknurseries.com/"}, {label:"Instagram", url: "https://www.instagram.com/bluerocknurseries/"}] },
+{
+  title: "Product Management",
+  subtitle: "0→1 Product Leadership",
+  desc: "Product leader experienced in shaping ambiguous opportunities into clear, testable product strategies and scalable software solutions. Experienced in product strategy, cross-functional collaboration, requirement gathering, backlog prioritization, prototyping, sprint execution, translating complex technical concepts into aligned stakeholder action, and more. Also skilled in leveraging product adoption and behavioral analytics to improve feature discovery, user engagement, retention, and product performance. Particularly focused on AI-enabled, data-informed, and/or emerging 3D/spatial product experiences.",
+  tags: [
+    "Agile",
+    "Scrum",
+    "Kanban",
+    "Cross-functional Collaboration",
+    "Requirement Gathering",
+    "Wireframing",
+    "Prototyping",
+    "Product Roadmaps",
+    "Product Backlog",
+    "Stakeholder Management",
+    "Pendo",
+    "User Behavior",
+    "A/B Testing",
+    "User Retention",
+    "Product Metrics"
+  ],
+  links: [
+    { label: "In Progress: AI Product Management Specialization (Duke via Coursera)", url: "https://www.coursera.org/specializations/ai-product-management-duke" },
+    { label: "Completed: Pendo AI for Product Management", url: "https://www.credly.com/badges/7c66f10a-8f2e-48a1-b1da-0d3d972b6929/public_url" },
+    { label: "Completed: Pendo Admin", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url" },
+    { label: "Completed: Pendo Essentials for Web", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url" }
+  ]
+}
+
 ]
 };
 
@@ -1137,16 +1580,21 @@ CATS.forEach((cat, ci) => {
 //  THREE.JS
 // ════════════════════════════════════════════════════════
 let scene, cam, ren;
-let meshes = [], glows = [], lines = [], labels = [];
+let meshes = [], glows = [], hazes = [], lines = [], labels = [];
 let activeF = 'all';
 let hov = null, sel = null;
 let flyA = null;
 let snHideTimer = null;
 let hitMeshes = [];
+let globalBrightness = 1.0;
+let globalFogDensity = 0.003;
+let globalStarIntensity = 1.0;
+let globalOrbVibrancy = 1.0;
 let isMobile = false;
 let isTouchDevice = false;
 
 // Auto-drift state
+let driftEnabled = true;
 let autoDrift = true;
 let driftSpeed = 0.0003; // very slow: full 360 in ~5.8 hours, feels like gentle breathing
 let driftBasePhi = 1.227;
@@ -1358,6 +1806,7 @@ function boot() {
     initShootingStars();
     bindEvents();
     buildSettingsUI();
+    applyStarColor(currentStarColor); // init brand color to match default star color
 
     setTimeout(() => document.getElementById('loader').classList.add('hidden'), 900);
     tick();
@@ -1405,7 +1854,9 @@ function createStarLayer({ count, spread, size, minOpacity, maxOpacity, texture 
     size, map: texture, transparent: true, depthWrite: false,
     blending: THREE.AdditiveBlending, sizeAttenuation: true, vertexColors: true,
   });
-  scene.add(new THREE.Points(geometry, material));
+  const points = new THREE.Points(geometry, material);
+  scene.add(points);
+  starLayers.push({ points, baseColors: colors.slice(), count });
 }
 
 function buildStars() {
@@ -1416,15 +1867,35 @@ function buildStars() {
 
 function buildNodes() {
   const SEG = isMobile ? 24 : 48;
+
+  // ── Inner glow texture: brighter core, slower falloff ──
   const gc = document.createElement('canvas');
-  gc.width = 128; gc.height = 128;
+  gc.width = 512; gc.height = 512;
   const gx = gc.getContext('2d');
-  const gr = gx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  gr.addColorStop(0, 'rgba(255,255,255,0.45)');
-  gr.addColorStop(0.25, 'rgba(255,255,255,0.1)');
-  gr.addColorStop(1, 'rgba(255,255,255,0)');
-  gx.fillStyle = gr; gx.fillRect(0, 0, 128, 128);
+  const gr = gx.createRadialGradient(256, 256, 0, 256, 256, 256);
+  gr.addColorStop(0,    'rgba(255,255,255,0.65)');
+  gr.addColorStop(0.06, 'rgba(255,255,255,0.55)');
+  gr.addColorStop(0.15, 'rgba(255,255,255,0.30)');
+  gr.addColorStop(0.30, 'rgba(255,255,255,0.14)');
+  gr.addColorStop(0.50, 'rgba(255,255,255,0.06)');
+  gr.addColorStop(0.75, 'rgba(255,255,255,0.02)');
+  gr.addColorStop(1,    'rgba(255,255,255,0)');
+  gx.fillStyle = gr; gx.fillRect(0, 0, 512, 512);
   const gt = new THREE.CanvasTexture(gc);
+
+  // ── Outer haze texture: ultra-soft diffuse cloud ──
+  const hc = document.createElement('canvas');
+  hc.width = 512; hc.height = 512;
+  const hx = hc.getContext('2d');
+  const hr = hx.createRadialGradient(256, 256, 0, 256, 256, 256);
+  hr.addColorStop(0,    'rgba(255,255,255,0.30)');
+  hr.addColorStop(0.10, 'rgba(255,255,255,0.22)');
+  hr.addColorStop(0.25, 'rgba(255,255,255,0.12)');
+  hr.addColorStop(0.45, 'rgba(255,255,255,0.06)');
+  hr.addColorStop(0.70, 'rgba(255,255,255,0.02)');
+  hr.addColorStop(1,    'rgba(255,255,255,0)');
+  hx.fillStyle = hr; hx.fillRect(0, 0, 512, 512);
+  const ht = new THREE.CanvasTexture(hc);
 
   NL.forEach((d, i) => {
     const c = new THREE.Color(CC[d.category].i);
@@ -1436,20 +1907,20 @@ function buildNodes() {
     const plIntensity  = 0.10 + yf * 0.35;
 
     const geo = new THREE.SphereGeometry(d.size, SEG, SEG);
-    const baseBrightness = 0.55 + yf * 0.45;
+    const baseBrightness = 0.65 + yf * 0.35;
     const mat = new THREE.ShaderMaterial({
       vertexShader:   BUBBLE_VERT,
       fragmentShader: BUBBLE_FRAG,
       uniforms: {
         uTime:            { value: 0 },
         uColor:           { value: new THREE.Vector3(c.r, c.g, c.b) },
-        uFresnelPower:    { value: 2.8 },
+        uFresnelPower:    { value: 2.4 },
         uIridesFreq:      { value: 4.5 },
         uIridesIntensity: { value: 0.42 },
         uSpecPower:       { value: 96.0 },
         uGlowIntensity:   { value: 0.32 },
-        uDisplaceAmp:     { value: 0.08 },
-        uDisplaceSpeed:   { value: 1.5 },
+        uDisplaceAmp:     { value: 0.10 },
+        uDisplaceSpeed:   { value: 1.2 },
         uBrightness:      { value: baseBrightness },
         uSelected:        { value: 0.0 },
       },
@@ -1468,17 +1939,28 @@ function buildNodes() {
     scene.add(m);
     meshes.push(m);
 
-    const baseGlowOp = Math.max(0.03, glowOpacity * 0.55);
+    // ── Inner glow sprite: concentrated nebula emission ──
+    const baseGlowOp = Math.max(0.07, glowOpacity * 1.0);
     const sm = new THREE.SpriteMaterial({ map: gt, color: CC[d.category].i, transparent: true, opacity: baseGlowOp, depthWrite: false, blending: THREE.AdditiveBlending });
     const sp = new THREE.Sprite(sm);
-    sp.scale.setScalar(d.size * 5);
+    sp.scale.setScalar(d.size * 8);
     sp.position.copy(m.position);
-    sp.userData = { ni: i, baseOp: baseGlowOp };
+    sp.userData = { ni: i, baseOp: baseGlowOp, rawBaseOp: baseGlowOp };
     scene.add(sp);
     glows.push(sp);
 
+    // ── Outer haze sprite: diffuse gas cloud extending far beyond the orb ──
+    const hazeBaseOp = Math.max(0.035, glowOpacity * 0.50);
+    const hm = new THREE.SpriteMaterial({ map: ht, color: CC[d.category].i, transparent: true, opacity: hazeBaseOp, depthWrite: false, blending: THREE.AdditiveBlending });
+    const hz = new THREE.Sprite(hm);
+    hz.scale.setScalar(d.size * 22);
+    hz.position.copy(m.position);
+    hz.userData = { ni: i, baseOp: hazeBaseOp, rawBaseOp: hazeBaseOp };
+    scene.add(hz);
+    hazes.push(hz);
+
     if (!isMobile) {
-      const pl = new THREE.PointLight(CC[d.category].i, plIntensity, d.size * 10);
+      const pl = new THREE.PointLight(CC[d.category].i, plIntensity, d.size * 14);
       pl.position.copy(m.position);
       m.userData.pl = pl;
       scene.add(pl);
@@ -1542,8 +2024,10 @@ function bindEvents() {
   let prevPinchDist = null;
   let downX = 0, downY = 0, downTime = 0;
   let isTapDrag = false;
+  let canvasPointerActive = false;   // guards against UI clicks triggering scene logic
 
   el.addEventListener('pointerdown', e => {
+    canvasPointerActive = true;
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     dragBtn = e.button; px = e.clientX; py = e.clientY;
     downX = e.clientX; downY = e.clientY; downTime = Date.now(); isTapDrag = false;
@@ -1553,6 +2037,9 @@ function bindEvents() {
     autoDrift = false;
   });
   window.addEventListener('pointerup', e => {
+    // Only process scene interaction if the down originated on the canvas
+    if (!canvasPointerActive) return;
+    canvasPointerActive = false;
     activePointers.delete(e.pointerId);
     if (activePointers.size < 2) prevPinchDist = null;
     if (!isTapDrag && Date.now() - downTime < 300) {
@@ -1562,11 +2049,17 @@ function bindEvents() {
     }
     isTapDrag = false;
     isDrag = false;
+    driftBasePhi = orbit.phi;
+    autoDrift = driftEnabled;
   });
   window.addEventListener('pointercancel', e => {
+    if (!canvasPointerActive) return;
+    canvasPointerActive = false;
     activePointers.delete(e.pointerId);
     if (activePointers.size < 2) prevPinchDist = null;
     isDrag = false;
+    driftBasePhi = orbit.phi;
+    autoDrift = driftEnabled;
   });
   el.addEventListener('pointermove', e => {
     if (activePointers.has(e.pointerId)) {
@@ -1618,7 +2111,6 @@ function bindEvents() {
   el.addEventListener('wheel', e => {
     if (flyA) return;
     orbit.dist = Math.max(8, Math.min(220, orbit.dist + e.deltaY * 0.06));
-    autoDrift = false;
     camFromOrbit();
   }, { passive: true });
   el.addEventListener('contextmenu', e => e.preventDefault());
@@ -1654,7 +2146,7 @@ function bindEvents() {
   snEl.addEventListener('mouseenter', () => clearTimeout(snHideTimer));
   snEl.addEventListener('mouseleave', () => { snHideTimer = setTimeout(hideSideNav, 180); });
   document.getElementById('nav-home').addEventListener('click', () => {
-    autoDrift = true; // Re-enable drift on home
+    autoDrift = driftEnabled;
     flyHome();
   });
   document.getElementById('nav-zin').addEventListener('click', () => {
@@ -1740,7 +2232,10 @@ function getAdjacentMeshes(mesh) {
 function selectMesh(o) {
   if (navigator.vibrate) navigator.vibrate(10);
   sel = o;
-  autoDrift = false;
+  // Sync nav button to selected orb's category
+  document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
+  const catBtn = document.querySelector('.fbtn[data-c="' + o.userData.category + '"]');
+  if (catBtn) catBtn.classList.add('on');
 
   meshes.forEach(m => {
     if (m.material === m.userData.bubbleMat) {
@@ -1846,10 +2341,9 @@ function closePanel() {
     if (m.material.uniforms && m.material.uniforms.uSelected)
       m.material.uniforms.uSelected.value = 0.0;
   });
-  glows.forEach(s => { s.material.opacity = s.userData.baseOp; });
   refreshVisibility();
   // Re-enable drift if on "all"
-  if (activeF === 'all') autoDrift = true;
+  if (activeF === 'all') autoDrift = driftEnabled;
 }
 
 // ════════════════════════════════════════════════════════
@@ -1924,13 +2418,20 @@ function refreshVisibility() {
     const isActive = activeF === 'all' || m.userData.category === activeF;
     m.visible = true;
     glows[i].visible = true;
+    if (hazes[i]) hazes[i].visible = true;
     if (m.userData.pl) m.userData.pl.visible = isActive;
     if (hitMeshes[i]) hitMeshes[i].visible = true;
     if (m.material.uniforms && m.material.uniforms.uBrightness) {
       m.material.uniforms.uBrightness.value = isActive
-        ? m.userData.baseBrightness
-        : m.userData.baseBrightness * 0.15;
+        ? m.userData.baseBrightness * 0.35 * globalBrightness
+        : m.userData.baseBrightness * 0.10;
     }
+    glows[i].material.opacity = isActive
+      ? glows[i].userData.baseOp * 0.35
+      : glows[i].userData.baseOp * 0.08;
+    if (hazes[i]) hazes[i].material.opacity = isActive
+      ? hazes[i].userData.baseOp * 0.35
+      : hazes[i].userData.baseOp * 0.08;
   });
   lines.forEach(l => l.visible = activeF === 'all' || l.userData.category === activeF);
   labels.forEach(s => s.visible = activeF === 'all' || s.userData.category === activeF);
@@ -1944,7 +2445,6 @@ function applyFilter() {
   refreshVisibility();
 
   if (activeF !== 'all') {
-    autoDrift = false;
     const cm = meshes.filter(m => m.userData.category === activeF);
     if (cm.length) {
       const c = new THREE.Vector3();
@@ -1953,7 +2453,7 @@ function applyFilter() {
       flyTo(c.clone().add(new THREE.Vector3(0, 15, 55)), c);
     }
   } else {
-    autoDrift = true;
+    autoDrift = driftEnabled;
     flyHome();
   }
 }
@@ -2005,7 +2505,7 @@ function tick() {
   processFly();
 
   // Auto-drift: very slow 360° rotation when idle on "all"
-  if (autoDrift && !flyA && !isDrag && !sel) {
+  if (autoDrift && !flyA && !isDrag) {
     orbit.theta += driftSpeed;
     // Very gentle vertical oscillation
     orbit.phi = driftBasePhi + Math.sin(t * 0.02) * 0.03;
@@ -2030,7 +2530,8 @@ function tick() {
       m.material.uniforms.uTime.value = t;
 
     glows[i].position.copy(m.position);
-    glows[i].scale.setScalar(m.userData.size * 5 * pu);
+    glows[i].scale.setScalar(m.userData.size * 7 * pu);
+    if (hazes[i]) hazes[i].position.copy(m.position);
     if (!isMobile && m.userData.pl) m.userData.pl.position.copy(m.position);
     if (isTouchDevice && hitMeshes[i]) hitMeshes[i].position.copy(m.position);
   });
