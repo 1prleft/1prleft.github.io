@@ -571,7 +571,7 @@ canvas { display: block; touch-action: none; outline: none; }
     <button class="nbtn" id="nav-zout" title="Zoom out">&minus;</button>
     <button class="nbtn" id="settings-toggle" title="Appearance" style="transition: transform 0.3s ease;">&#9881;</button>
   </div>
-  <div class="hint">Scroll to zoom through the nebula | Click and hold to fly</div>
+  <div class="hint">Scroll to zoom | Click & hold to fly | Right-click or Alt+hold to fly in reverse</div>
 </div>
 
 <div id="settings-panel">
@@ -725,22 +725,81 @@ title: "AI Consultant: Digital Product Owner / GenAI Delivery Manager",
     links: [{ label: "Apple Juice", url: "https://www.apple-juice.com/" } ]
   },
 ],
-     
     portfolio: [
-    { title: "PW Universe", subtitle: "Website: New Real Estate Developer", desc: "Work In Progress: Design + build of a website for a real estate team of two (Me and a good friend from grade school) looking to provide a legitimate web presence for future funding and brand needs. We currently own 2 acres in Boone, NC and are looking to develop rental properties there", image:"https://www.weduitglobal.com/Weduitphotos/PWuni.png", tags: ["PHP","Wordpress","Web hosting","Website Design"], meta: { Role:"Lead Developer", Timeline:"2022 — Present", Team:"2 humans", Status:"Live" }, links: [{ label:"View Work in Progress", url:"https://www.pwuniverse.com" }]  }, 
-    { title: "PhilRich.Live", subtitle: "Website Design Speedrun", desc: "Developed website in 1 hour from scratch, coding via HTML/CSS to design a live prototype for a solo music business", image: "https://weduitglobal.com/Weduitphotos/prlcom.jpg",tags: ["HTMl","CSS","Web hosting","Website Design","Digital Assets","Brand Palattes"], meta: { Role:"Lead Developer and Designer", Timeline:"2025 — Present", Team:"Phil Rich", Status:"Live" }, links: [{ label:"View Work in Progress", url:"https://www.philrich.live" }]  }, 
-    { title: "Rapid Website Design", subtitle: "Case Study & Potential build for client", desc: "Was tasked with a case study for an interview, while concurrently working with a friend on website plans. A compliation of Features, User Stories, Personas, and Mock ups, completed in one sitting.",image: "https://weduitglobal.com/Weduitphotos/CMACS_RUBS_mockups.png", tags: ["Miro","Mockups","User Stories","Agile","Website design","wireframing"], meta: { Role:"Product & Design Lead", Timeline:"2023", Team:"Phil Rich", Status:"COMPLETE" }, links: [{ label:"View Work Here", url:"https://weduitglobal.com/Weduitphotos/CMACS_RUBS_mockups.png" }]  }, 
-    { title: "Blue Rock Nurseries", subtitle: "Hobby Farm to be scaled", desc: "Established in 2020, a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants(1250 starter plants in 2024), will grow upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.",image: "https://weduitglobal.com/Weduitphotos/brn.jpg",video: "https://weduitglobal.com/Weduitphotos/brn.mp4", tags: ["Soil & Plant Biology","Chemistry","JADAM","Korean Natural Farming (KNF)","Organic Inputs","HOT Peppers"], meta: { Role:"Farmer, Sales Lead, Social Media Scrub", Timeline:"2020-", Team:"Phil Rich", Status:"In season" }, links: [{label: "Website Under Construction", URL: "https://www.bluerocknurseries.com/"}, {label:"Instagram", url: "https://www.instagram.com/bluerocknurseries/"}]   }, 
-    { title: "Custom Financial Tools / Spreadsheets", subtitle: "Building a portfolio of financial tools for personal and commercial use.", desc:"Spreadsheets:\n-time_tracker.xlsx\n- simple_budget.xlsx\n- dynamic_budget.xlsx\n- seller_financing_model.xlsx\n- startup_cost_calculator.xlsx  \n- break_even_analysis.xlsx \n- business_revenue_forecast.xlsx \n- employee_payroll_estimator.xlsx \n- cogs_profit_margin_calculator.xlsx \n- ecommerce_order_fulfillment_log.xlsx \n- rental_property_cash_flow_analyzer.xlsx \n- house_flipping_roi_calculator.xlsx \n- str_airbnb_revenue_analyzer.xlsx \n- property_comparison_tool.xlsx \n- rental_portfolio_dashboard.xlsx \n- deal_sensitivity_analysis.xlsx \n- mortgage_payoff_accelerator.xlsx \n- real_estate_agent_commission_tracker.xlsx \n- stock_portfolio_dividend_tracker.xlsx \n- net_worth_investment_dashboard.xlsx \n- restaurant_food_cost_calculator.xlsx \n- profit_loss_statement.xlsx ",
-      tags: ["MS Excel","Financial Modeling","Solution Engineering","Custom Tooling","Math","Process Improvement","Generative","AI"], image: "https://weduitglobal.com/Weduitphotos/sellerfinancingcalc.png", meta: { Role:"Product Lead & Developer", Timeline:"2020-", Team:"Phil Rich", Status:"Ongoing" }, links: [{ label:"Preview: Seller Financing Calc", url:"https://weduitglobal.com/Weduitphotos/sellerfinancingcalc.png" }]  }, 
-    { title: "SiteCraft", subtitle: "Real Estate Investor Software Suite", desc: "A new project I started to enable my real estate journey with the technical tools needed. Currently working on a project management tool to help manage construction projects, 3D autoCAD blueprint builder, property recon tools, and more.",video: "https://www.weduitglobal.com/Weduitphotos/sitecraft_pm.mp4",tags: ["Real Estate","Property Search", "Project Management","AutoCAD","Planning Tools","Calculators","Solution Design","Software Architecture"], meta: { Role:"Product & Design Lead, Software Development Manager", Timeline:"2026-", Team:"Phil Rich", Status:"In Progress" }, links: [{ label:"Watch a clip of SiteCraft PM", url:"https://weduitglobal.com/Weduitphotos/sitecraft_pm.mp4" },{ label:"Watch a clip of Planforge", url:"https://weduitglobal.com/Weduitphotos/planforge.mp4" }]  }, 
-    { title: "Golfballin", subtitle: "Golf Ball Designer", desc: "A passion project I'm working on, one day I will pay my golf bill with gall balls.",video: "https://www.weduitglobal.com/Weduitphotos/jolfball.mp4", tags: ["Golf","Product Design", "Pricing","Planning Tools","Solution Design","Software Architecture"], meta: { Role:"Product & Design Lead, Software Development Manager", Timeline:"2026-", Team:"Phil Rich", Status:"In Progress" }, links: [{ label:"Watch a clip", url:"https://weduitglobal.com/Weduitphotos/jolfball.mp4" }]  }, 
-],
+    {
+    title: "PhilRich.Live",
+    subtitle: "Website Design Speedrun",
+    desc: "Developed a website in 1 hour from scratch, coding via HTML/CSS to design a live prototype for a solo music business.",
+    image: "https://weduitglobal.com/Weduitphotos/prlcom.jpg",
+    tags: ["HTML", "CSS", "Web Hosting", "Website Design", "Digital Assets", "Brand Palettes"],
+    meta: { Role: "Lead Developer and Designer", Timeline: "2025 — Present", Team: "Phil Rich", Status: "Live" },
+    links: [{ label: "View Work in Progress", url: "https://www.philrich.live" }]
+  },
+  {
+    title: "Blue Rock Nurseries",
+    subtitle: "Hobby Farm to be Scaled",
+    desc: "Established in 2020, a hobby farm with goals of scaling to a larger operation in the near future. Focuses primarily on seed to starter plants (1,250 starter plants in 2024), growing upwards of 250 pepper, tomato, and other vegetable plants to harvest annually.",
+    image: "https://weduitglobal.com/Weduitphotos/brn.jpg",
+    video: "https://weduitglobal.com/Weduitphotos/brn.mp4",
+    tags: ["Soil & Plant Biology", "Chemistry", "JADAM", "Korean Natural Farming (KNF)", "Organic Inputs", "HOT Peppers"],
+    meta: { Role: "Farmer, Sales Lead, Social Media", Timeline: "2020—", Team: "Phil Rich", Status: "In Season" },
+    links: [
+      { label: "Website Under Construction", url: "https://www.bluerocknurseries.com/" },
+      { label: "Instagram", url: "https://www.instagram.com/bluerocknurseries/" }
+    ]
+  },
+  {
+    title: "Rapid Website Design",
+    subtitle: "Product Discovery Sprint — Personas, User Stories & Mockups in One Sitting",
+    desc: "Completed a full product discovery cycle — features, user stories, personas, and mockups — in a single focused session under interview conditions. Demonstrates the ability to move quickly from ambiguity to structured product direction, a core skill in early-stage experimentation environments.",
+    image: "https://weduitglobal.com/Weduitphotos/CMACS_RUBS_mockups.png",
+    tags: ["Product Discovery", "User Stories", "Personas", "Rapid Prototyping", "Wireframing", "Agile"],
+    meta: { Role: "Product & Design Lead", Timeline: "2023", Team: "Phil Rich", Status: "Complete" },
+    links: [{ label: "View Work Here", url: "https://weduitglobal.com/Weduitphotos/CMACS_RUBS_mockups.png" }]
+  },
+  {
+    title: "PW Universe",
+    subtitle: "Real Estate Venture — Technical Founder, Product & Web",
+    desc: "Co-founded a real estate development venture, owning product, web presence, and technical infrastructure end-to-end. Built and maintain a live WordPress/PHP site while managing real-world land acquisition (2 acres, Boone NC) and planning future rental development. Demonstrates founder-mode ownership in ambiguous, resource-constrained environments.",
+    image: "https://www.weduitglobal.com/Weduitphotos/PWuni.png",
+    tags: ["0→1 Founder", "Technical Product", "PHP", "WordPress", "Web Hosting", "Website Design"],
+    meta: { Role: "Technical Co-Founder & Lead Developer", Timeline: "2022 — Present", Team: "2 humans", Status: "Live" },
+    links: [{ label: "View Work in Progress", url: "https://www.pwuniverse.com" }]
+  },
+  {
+    title: "Golfballin",
+    subtitle: "3D Product Design Prototype — Early-Stage Experimentation",
+    desc: "Passion project exploring interactive 3D product design and configurability. A lightweight prototype validating whether a visual, real-time golf ball customization tool is technically feasible and commercially interesting. Embodies my approach to early-stage bets: build a demo, learn fast, decide what's worth pursuing.",
+    video: "https://www.weduitglobal.com/Weduitphotos/jolfball.mp4",
+    tags: ["3D Product Design", "Prototyping", "Early Validation", "Consumer Product", "Visual UX"],
+    meta: { Role: "Product & Design Lead, Software Development Manager", Timeline: "2026—", Team: "Phil Rich", Status: "In Progress" },
+    links: [{ label: "Watch a clip", url: "https://weduitglobal.com/Weduitphotos/jolfball.mp4" }]
+  },
+  {
+    title: "Custom Financial Tools / Spreadsheets",
+    subtitle: "Portfolio of 22 Custom Financial Tools — Technical Product Ownership",
+    desc: "Designed and shipped a portfolio of 22+ financial modeling tools from scratch — spanning real estate underwriting, revenue forecasting, payroll, and investment dashboards. Each tool was scoped, built, and iterated solo. Demonstrates systematic product thinking, domain modeling, and the ability to translate complex user needs into lightweight, functional solutions.",
+    tags: ["Financial Modeling", "0→1 Tooling", "Technical Product", "Solution Engineering", "Systems Thinking", "AI-Assisted Development"],
+    image: "https://weduitglobal.com/Weduitphotos/sellerfinancingcalc.png",
+    meta: { Role: "Product Lead & Developer", Timeline: "2020—", Team: "Phil Rich", Status: "Ongoing" },
+    links: [{ label: "Preview: Seller Financing Calc", url: "https://weduitglobal.com/Weduitphotos/sellerfinancingcalc.png" }]
+  },
+  {
+    title: "SiteCraft",
+    subtitle: "0→1 Real Estate Software Suite — Spatial Planning + Construction Tools",
+    desc: "Self-initiated product build combining spatial planning, 3D blueprint tools, and project management into a unified real estate investor suite. Drove full product lifecycle from problem discovery through prototyping — including a 3D AutoCAD-style plan builder (Planforge), construction PM tooling, and property recon features. Sole PM, designer, and development lead in a highly ambiguous, early-stage environment.",
+    video: "https://www.weduitglobal.com/Weduitphotos/sitecraft_pm.mp4",
+    tags: ["0→1 Product", "3D Tooling", "Spatial Planning", "AutoCAD", "Project Management", "Product Architecture", "Prototyping", "Solution Design"],
+    meta: { Role: "Product & Design Lead, Software Development Manager", Timeline: "2026—", Team: "Phil Rich", Status: "In Progress" },
+    links: [
+      { label: "Watch a clip of SiteCraft PM", url: "https://weduitglobal.com/Weduitphotos/sitecraft_pm.mp4" },
+      { label: "Watch a clip of Planforge", url: "https://weduitglobal.com/Weduitphotos/planforge.mp4" }   ] 
+  }],
    
 skills: [
 { title: "Data Analytics", subtitle: "Product-focused Business and Data Analyst", desc: "Blend analytical rigor with product thinking to turn data into decisions. Experience working with Regulatory and adhoc reporting, Excel, SQL, Python, Tableau, business intelligence, and data modeling to support business decisions and product strategy, operational visibility, experimentation, and stakeholder communication.", tags: ["SQL","Python","Business Intelligence","Reporting","Excel","Data Modeling","Data Engineering","Data pipelines"], 
 links: [{label:"In Progress: Python for Finance: Investment Fundamentals & Data Analytics", url: "https://www.udemy.com/course/python-for-finance-investment-fundamentals-data-analytics/"},{label: "Completed: The Complete SQL Bootcamp 2022: Go from Zero to Hero", url: "https://www.udemy.com/certificate/UC-dff15609-d389-4656-8228-c6a1d0104135/"}] },
-{ title: "Design & UX", subtitle: "User-Centered Design", desc: "Design and prototype thoughtful user experiences, creating seamless UX across product, interaction, and interface layers. Strong interest in translating complex ideas into intuitive and engaging user journeys, including VR, 3D, and spatial design." ,
+{ title: "Design & UX", subtitle: "User-Centered Design", desc: "Design and prototype engaging and immersive user experiences, creating seamless UX across product, interaction, and interface layers. Strong interest in translating complex ideas into intuitive and engaging user journeys, including VR, 3D, and spatial design." ,
 tags: ["Figma","Miro","Wireframing","Prototyping","Interaction Design","User Research","Usability Testing","Design Systems","Accessibility","Information Architecture","Spatial UX","3D Interaction Design","Immersive Experiences","Workshop Facilitation"],
 links: [
 { label: "In Progress: User Experience & Interaction Design for AR/VR/MR/XR", url: "https://www.coursera.org/learn/user-experience-interaction-design-augmented-virtual-mixed-extended-reality" },
@@ -779,11 +838,8 @@ links: [
     { label: "Completed: Pendo AI for Product Management", url: "https://www.credly.com/badges/7c66f10a-8f2e-48a1-b1da-0d3d972b6929/public_url" },
     { label: "Completed: Pendo Admin", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url" },
     { label: "Completed: Pendo Essentials for Web", url: "https://www.credly.com/badges/58718358-5197-431f-aa02-3fa77bfc8e66/public_url" }
-  ]
-}
-]
-};
-
+]}
+]};
 
 const CC = {
   portfolio:   { hex:'#e8764e', i:0xe8764e },
@@ -1173,6 +1229,7 @@ const innerOrbit = { theta: 0, phi: 1.227, dist: 149, tx: 0, ty: 0, tz: 0 };
 let isDrag = false, dragBtn = -1, px = 0, py = 0, downX = 0, downY = 0, downTime = 0;
 let isTapDrag = false;
 let isFlying = false;
+let flyReverse = false;
 let flySpeed = 0.33;
 let autoDrift = true;
 let driftSpeed = 0.0003;
@@ -2215,6 +2272,7 @@ function bindEvents() {
     px = e.clientX; py = e.clientY;
     downX = e.clientX; downY = e.clientY;
     downTime = Date.now(); isTapDrag = false; isFlying = false;
+    flyReverse = e.button === 2 || e.altKey;
     if (viewState === 'inner') autoDrift = false;
     if (viewState === 'outer') { enterHint.classList.remove('visible'); isHoveringOrb = false; }
   });
@@ -2323,6 +2381,7 @@ function bindEvents() {
       isDrag = false;
       isTapDrag = false;
       isFlying = false;
+      flyReverse = false;
       if (viewState === 'inner') {
         driftBasePhi = innerOrbit.phi - Math.sin(timer.getElapsed() * 0.02) * 0.03;
         autoDrift = driftEnabled;
@@ -2339,6 +2398,7 @@ function bindEvents() {
       isDrag = false;
       isTapDrag = false;
       isFlying = false;
+      flyReverse = false;
       if (viewState === 'inner') {
         driftBasePhi = innerOrbit.phi - Math.sin(timer.getElapsed() * 0.02) * 0.03;
         autoDrift = driftEnabled;
@@ -2354,6 +2414,7 @@ function bindEvents() {
     isDrag = false;
     isTapDrag = false;
     isFlying = false;
+    flyReverse = false;
     if (viewState === 'inner') {
       driftBasePhi = innerOrbit.phi - Math.sin(timer.getElapsed() * 0.02) * 0.03;
       autoDrift = driftEnabled;
@@ -2745,8 +2806,9 @@ function tick() {
         if (ptr && !checkOuterHover(ptr.x, ptr.y) && !isTapDrag) {
           const cx = ptr.x / innerWidth - 0.5;
           const cy = ptr.y / innerHeight - 0.5;
-          outerOrbit.theta += cx * 0.018;
-          outerOrbit.phi = Math.max(0.1, Math.min(Math.PI - 0.1, outerOrbit.phi + cy * 0.018));
+          const flyDir = flyReverse ? -1 : 1;
+          outerOrbit.theta += cx * 0.018 * flyDir;
+          outerOrbit.phi = Math.max(0.1, Math.min(Math.PI - 0.1, outerOrbit.phi + cy * 0.018 * flyDir));
         }
       }
     }
@@ -2792,11 +2854,12 @@ function tick() {
           const fwdX = -Math.sin(innerOrbit.phi) * Math.sin(innerOrbit.theta);
           const fwdY = -Math.cos(innerOrbit.phi);
           const fwdZ = -Math.sin(innerOrbit.phi) * Math.cos(innerOrbit.theta);
-          innerOrbit.tx += fwdX * flySpeed;
-          innerOrbit.ty += fwdY * flySpeed;
-          innerOrbit.tz += fwdZ * flySpeed;
-          // Smoothly approach a comfortable cockpit distance
-          innerOrbit.dist += (35 - innerOrbit.dist) * 0.04;
+          const flyDir = flyReverse ? -1 : 1;
+          innerOrbit.tx += fwdX * flySpeed * flyDir;
+          innerOrbit.ty += fwdY * flySpeed * flyDir;
+          innerOrbit.tz += fwdZ * flySpeed * flyDir;
+          // Smoothly approach a comfortable distance (pull back when reversing)
+          innerOrbit.dist += ((flyReverse ? 80 : 35) - innerOrbit.dist) * 0.04;
         }
       }
     }
